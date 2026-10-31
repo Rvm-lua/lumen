@@ -312,6 +312,7 @@ main{position:relative; z-index:2; padding-bottom:80px}
   <nav class="nav" aria-label="Sections">
     <button data-view="home" aria-current="page">Accueil</button>
     <button data-view="films">Tous les films</button>
+    <button data-view="kids">Kids</button>
     <button data-view="list">Ma liste</button>
   </nav>
   <div class="sp"></div>
@@ -328,6 +329,7 @@ main{position:relative; z-index:2; padding-bottom:80px}
 <nav class="tabbar" aria-label="Navigation">
   <button data-view="home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5V20h-5v-6H9v6H4z"/></svg>Accueil</button>
   <button data-view="films"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 8h16M4 16h16M9 3v18M15 3v18"/></svg>Films</button>
+  <button data-view="kids"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>Kids</button>
   <button data-search><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Recherche</button>
   <button data-view="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Ma liste</button>
 </nav>
@@ -362,6 +364,7 @@ const I={
 /* ---------- Internet Archive ---------- */
 const IA="https://archive.org";
 const COLLS=[
+ {id:"kids",name:"Kids",q:`(collection:classic_cartoons OR (collection:(feature_films OR silent_films OR Comedy_Films) AND subject:(children OR kids OR family OR "fairy tale" OR "children's film" OR enfants))) AND NOT subject:(horror OR war OR propaganda OR "censored eleven" OR adult OR violence OR crime OR murder)`},
  {id:"feature_films",name:"Longs métrages"},
  {id:"Film_Noir",name:"Film noir"},
  {id:"SciFi_Horror",name:"Science-fiction & horreur"},
@@ -369,7 +372,8 @@ const COLLS=[
  {id:"silent_films",name:"Cinéma muet"},
  {id:"classic_cartoons",name:"Dessins animés classiques"}
 ];
-const ALL=`collection:(${COLLS.map(c=>c.id).join(" OR ")})`;
+const ALL=`collection:(${COLLS.filter(c=>!c.q).map(c=>c.id).join(" OR ")})`;
+const collQ=c=>{const o=COLLS.find(x=>x.id===c); return o&&o.q?`(${o.q})`:`collection:${c}`};
 const films={}; // cache par identifiant
 function norm(d){
   const id=d.identifier; const prev=films[id]||{};
@@ -382,7 +386,7 @@ function norm(d){
 }
 const thumb=id=>`${IA}/services/img/${encodeURIComponent(id)}`;
 async function iaSearch({q="",coll="",sort="downloads desc",rows=30,page=1,signal}={}){
-  let query=`mediatype:movies AND ${coll?`collection:${coll}`:ALL}`;
+  let query=`mediatype:movies AND ${coll?collQ(coll):ALL}`;
   if(q){const clean=q.replace(/[^\p{L}\p{N}\s'-]/gu," ").trim(); if(clean)query+=` AND (title:(${clean}) OR subject:(${clean}) OR creator:(${clean}))`}
   const p=new URLSearchParams({q:query,rows:String(rows),page:String(page),output:"json"});
   ["identifier","title","year","date","downloads","subject","description","runtime"].forEach(f=>p.append("fl[]",f)); p.append("sort[]",sort);
@@ -493,7 +497,7 @@ function renderGrid(kind,coll=""){
   const sorts=[["downloads desc","Populaires"],["year asc","Plus anciens"],["year desc","Plus récents"],["titleSorter asc","A → Z"]];
   gridState={coll,sort:gridState&&gridState.coll===coll?gridState.sort:"downloads desc",page:0,done:false,loading:false,total:0};
   const name=coll?COLLS.find(c=>c.id===coll).name:"Tous les films";
-  $("#app").innerHTML=`<div class="view-in"><div class="page-head"><h1>${esc(name)}</h1><p id="count">Chargement…</p>
+  $("#app").innerHTML=`<div class="view-in"><div class="page-head"><h1>${esc(name)}</h1>${coll==="kids"?`<p>Dessins animés classiques et films familiaux, sans horreur ni guerre. La sélection est automatique : jetez un œil avant de lancer un film pour les plus petits, certains dessins animés anciens contiennent des clichés de leur époque.</p>`:""}<p id="count">Chargement…</p>
     <div class="chips"><button class="chip" data-coll="" aria-pressed="${!coll}">Tout</button>${COLLS.map(c=>`<button class="chip" data-coll="${c.id}" aria-pressed="${coll===c.id}">${esc(c.name)}</button>`).join("")}</div>
     <div class="chips">${sorts.map(([v,l])=>`<button class="chip" data-sort="${v}" aria-pressed="${gridState.sort===v}">${l}</button>`).join("")}</div></div>
     <div class="grid" id="grid"></div><div class="status" id="more"><div class="spin"></div></div></div>`;
@@ -508,7 +512,7 @@ function renderGrid(kind,coll=""){
 function go(v,coll){
   view=v; clearTimeout(heroTimer); closeDetail(true); closeSearch();
   $$(".nav [data-view],.tabbar [data-view]").forEach(b=>b.setAttribute("aria-current",b.dataset.view===v?"page":"false"));
-  v==="home"?renderHome():renderGrid(v,coll||"");
+  v==="home"?renderHome():v==="kids"?renderGrid("films","kids"):renderGrid(v,coll||"");
   window.scrollTo(0,0); onScroll();
 }
 function onScroll(){$("#top").classList.toggle("solid",scrollY>30||view!=="home")}
@@ -718,7 +722,7 @@ document.addEventListener("click",e=>{
   const pl=e.target.closest("[data-play]"); if(pl){e.stopPropagation(); play(pl.dataset.play); return}
   const op=e.target.closest("[data-open]"); if(op){openDetail(op.dataset.open); return}
   const v=e.target.closest("[data-view]"); if(v){go(v.dataset.view); return}
-  const mo=e.target.closest("[data-more]"); if(mo){mo.dataset.more==="list"?go("list"):go("films",mo.dataset.more); return}
+  const mo=e.target.closest("[data-more]"); if(mo){const m=mo.dataset.more; m==="list"||m==="kids"?go(m):go("films",m); return}
   const cl=e.target.closest("[data-coll]"); if(cl){gridState=null; renderGrid("films",cl.dataset.coll); return}
   const so=e.target.closest("[data-sort]"); if(so&&gridState){const c=gridState.coll; gridState.sort=so.dataset.sort; const s=gridState.sort; renderGrid("films",c); return}
   if(e.target.closest("[data-search]")){openSearch(); return}
