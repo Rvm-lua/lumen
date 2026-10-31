@@ -1,21 +1,32 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Lumen</title>
-<meta name="description" content="Lumen — des milliers de films du domaine public, issus d'Internet Archive.">
-<meta name="theme-color" content="#0d0b13">
+<title>Cinemood</title>
+<meta name="description" content="Cinemood — thousands of free classic films, restored live in your browser. No subscription, no ads.">
+<meta name="theme-color" content="#0e0b12">
+<meta name="application-name" content="Cinemood">
+<meta name="apple-mobile-web-app-title" content="Cinemood">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta property="og:site_name" content="Cinemood">
+<meta property="og:title" content="Cinemood — Old films. New mood.">
+<meta property="og:description" content="Thousands of free classic films, restored live. No subscription, no ads.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff7a6b'/%3E%3Cstop offset='1' stop-color='%23ffc86b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='%230e0b12'/%3E%3Ccircle cx='11' cy='15' r='6' fill='none' stroke='url(%23g)' stroke-width='3.6'/%3E%3Ccircle cx='21' cy='15' r='6' fill='none' stroke='url(%23g)' stroke-width='3.6'/%3E%3Cpath d='M10 24.5q6 3 12 0' fill='none' stroke='url(%23g)' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://archive.org">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
-/* Salle de projection : une lumière ambrée (le projecteur) sur une encre violacée */
+/* Cinemood : encre nocturne + dégradé « coucher de soleil » (corail → ambre), la lumière d'une séance du soir */
 :root{
-  --ink:#0d0b13; --ink-2:#15121d; --ink-3:#201c2a; --ink-4:#2c2738;
-  --line:rgba(236,226,255,.09); --fg:#f1ecf7; --muted:#a39bb2; --dim:#6f6880;
-  --beam:#f4c47d; --beam-ink:#2a1a05; --err:#ff8a7a;
+  --ink:#0e0b12; --ink-2:#16121b; --ink-3:#211c27; --ink-4:#2d2734;
+  --line:rgba(255,232,224,.09); --fg:#f6eef0; --muted:#ad9fa8; --dim:#75697a;
+  --mood-1:#ff7a6b; --mood-2:#ffc86b; --beam:#ffa877; --beam-ink:#2b1208; --err:#ff8a7a;
+  --grad:linear-gradient(120deg,var(--mood-1),var(--mood-2));
   --f-display:"Bricolage Grotesque","Onest",system-ui,sans-serif;
   --f-body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
@@ -31,18 +42,37 @@ body.locked{overflow:hidden}
 body::before{content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top,0px); z-index:60; background:var(--ink)}
 img{max-width:100%}
 [hidden]{display:none!important}
-button{font:inherit; color:inherit; background:none; border:0; cursor:pointer; padding:0}
+button,select{font:inherit; color:inherit; background:none; border:0; cursor:pointer; padding:0}
 a{color:var(--beam)}
 :focus-visible{outline:2px solid var(--beam); outline-offset:3px; border-radius:6px}
 .mono{font-family:var(--f-mono); font-variant-numeric:tabular-nums}
 .grain{position:absolute; inset:0; pointer-events:none; background-image:var(--grain); opacity:.1; mix-blend-mode:overlay}
+.gt{background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent}
+
+/* logo */
+.logo{font-family:var(--f-display); font-weight:800; font-size:25px; letter-spacing:-.045em; display:flex; align-items:center; gap:9px; color:var(--fg); line-height:1}
+.mark{width:38px; height:26px; flex:none; overflow:visible; filter:drop-shadow(0 0 10px rgba(255,140,110,.35))}
+.mark .eye{transform-box:fill-box; transform-origin:center; transition:transform .5s var(--ease)}
+.mark .smile{stroke-dasharray:18; stroke-dashoffset:0; transition:stroke-dashoffset .6s var(--ease)}
+.logo:hover .mark .eye{transform:scaleY(.25)}
+.logo:hover .mark .eye + .eye{transition-delay:.04s}
+.logo .oo{background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent}
+
+/* splash */
+.splash{position:fixed; inset:0; z-index:200; background:var(--ink); display:grid; place-content:center; justify-items:center; gap:16px; transition:opacity .7s var(--out),visibility .7s}
+.splash.gone{opacity:0; visibility:hidden}
+.splash .mark{width:130px; height:90px; filter:drop-shadow(0 0 34px rgba(255,140,110,.5))}
+.splash .eye{animation:blink 1.4s .5s var(--ease) both}
+.splash .smile{stroke-dashoffset:18; animation:draw .9s .2s var(--out) forwards}
+.splash .word{font-family:var(--f-display); font-weight:800; font-size:clamp(46px,9vw,78px); letter-spacing:-.05em; line-height:1; animation:rise .9s .25s var(--out) both}
+.splash .tag{font-family:var(--f-mono); font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:var(--beam); animation:rise .9s .45s var(--out) both}
+@keyframes blink{0%,40%,60%,100%{transform:none} 50%{transform:scaleY(.15)}}
+@keyframes draw{to{stroke-dashoffset:0}}
 
 /* header */
 .top{position:fixed; top:env(safe-area-inset-top,0px); left:0; right:0; z-index:50; display:flex; align-items:center; gap:28px; padding-block:16px; padding-left:var(--gut-l); padding-right:var(--gut-r);
-  background:linear-gradient(to bottom,rgba(13,11,19,.85),rgba(13,11,19,0)); transition:background .4s var(--out)}
-.top.solid{background:rgba(13,11,19,.74); backdrop-filter:blur(18px) saturate(1.3); -webkit-backdrop-filter:blur(18px) saturate(1.3); box-shadow:0 1px 0 var(--line)}
-.logo{font-family:var(--f-display); font-weight:800; font-size:24px; letter-spacing:-.03em; display:flex; align-items:center; gap:8px}
-.logo i{width:12px; height:12px; border-radius:50%; background:var(--beam); box-shadow:0 0 18px 4px rgba(244,196,125,.45); display:block}
+  background:linear-gradient(to bottom,rgba(14,11,18,.85),rgba(14,11,18,0)); transition:background .4s var(--out)}
+.top.solid{background:rgba(14,11,18,.75); backdrop-filter:blur(18px) saturate(1.3); -webkit-backdrop-filter:blur(18px) saturate(1.3); box-shadow:0 1px 0 var(--line)}
 .nav{display:flex; gap:4px}
 .nav button{padding:8px 14px; border-radius:999px; color:var(--muted); font-weight:500; transition:color .25s,background .25s}
 .nav button:hover{color:var(--fg)}
@@ -56,8 +86,10 @@ a{color:var(--beam)}
 .searchpill{display:flex; align-items:center; gap:10px; height:40px; padding:0 12px 0 14px; border-radius:999px; background:rgba(255,255,255,.06); color:var(--muted); border:1px solid var(--line); transition:background .2s}
 .searchpill:hover{background:rgba(255,255,255,.1)}
 .searchpill svg{width:17px; height:17px}
-.avatar{width:36px; height:36px; border-radius:10px; background:conic-gradient(from 200deg,#f4c47d,#c36a8f,#6b5bd6,#f4c47d); font-family:var(--f-display); font-weight:700; color:#160e1f; display:grid; place-items:center}
-.menu{position:absolute; top:62px; right:var(--gut-r); width:280px; background:var(--ink-3); border:1px solid var(--line); border-radius:16px; padding:8px; box-shadow:0 24px 60px rgba(0,0,0,.5); transform-origin:top right; animation:pop .35s var(--ease)}
+.lang{height:40px; padding:0 12px; border-radius:999px; border:1px solid var(--line); color:var(--muted); font-family:var(--f-mono); font-size:12px; letter-spacing:.06em; background:var(--ink-2)}
+.lang:hover{color:var(--fg)}
+.avatar{width:36px; height:36px; border-radius:10px; background:var(--grad); font-family:var(--f-display); font-weight:700; color:var(--beam-ink); display:grid; place-items:center}
+.menu{position:absolute; top:62px; right:var(--gut-r); width:290px; background:var(--ink-3); border:1px solid var(--line); border-radius:16px; padding:8px; box-shadow:0 24px 60px rgba(0,0,0,.5); transform-origin:top right; animation:pop .35s var(--ease)}
 @keyframes pop{from{opacity:0; transform:scale(.94) translateY(-6px)}}
 .menu .row{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 12px; border-radius:10px}
 .menu small{display:block; color:var(--dim); font-size:12px}
@@ -71,17 +103,17 @@ a{color:var(--beam)}
 .hero .bg{position:absolute; inset:-40px; z-index:-2}
 .hero .bg img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:blur(38px) saturate(1.4) brightness(.7); opacity:0; transform:scale(1.1); transition:opacity 1.2s var(--out)}
 .hero .bg img.on{opacity:1}
-.hero::after{content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(90deg,rgba(13,11,19,.95) 0%,rgba(13,11,19,.6) 45%,rgba(13,11,19,.15) 80%),linear-gradient(0deg,var(--ink) 0%,rgba(13,11,19,0) 40%)}
+.hero::after{content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(90deg,rgba(14,11,18,.95) 0%,rgba(14,11,18,.6) 45%,rgba(14,11,18,.15) 80%),linear-gradient(0deg,var(--ink) 0%,rgba(14,11,18,0) 40%)}
 .hero-in{width:100%; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:40px; align-items:end; padding-left:var(--gut-l); padding-right:var(--gut-r); padding-block:120px 64px}
 .hero-txt{display:grid; gap:18px; max-width:720px}
 .frame{width:clamp(220px,24vw,340px); aspect-ratio:4/3; border-radius:14px; overflow:hidden; position:relative; box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.08); transform:rotate(1.5deg); max-width:100%}
 .frame img{width:100%; height:100%; object-fit:cover; display:block}
 .eyebrow{display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-family:var(--f-mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--beam)}
-.eyebrow b{padding:3px 8px; border-radius:6px; background:rgba(244,196,125,.14); letter-spacing:.08em}
+.eyebrow b{padding:3px 8px; border-radius:6px; background:rgba(255,168,119,.14); letter-spacing:.08em}
 .hero h1{font-family:var(--f-display); font-weight:800; font-size:clamp(38px,6.4vw,82px); line-height:.94; letter-spacing:-.035em; margin:0; text-wrap:balance}
 .meta{display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; color:var(--muted); font-size:14px}
 .pill{font-family:var(--f-mono); font-size:11px; border:1px solid rgba(255,255,255,.3); border-radius:4px; padding:1px 6px; color:var(--fg)}
-.hero p{margin:0; color:#d7d0e2; font-size:16px; max-width:58ch; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
+.hero p{margin:0; color:#e2d6dc; font-size:16px; max-width:58ch; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
 .swap > *{animation:rise .8s var(--out) both}
 .swap > *:nth-child(2){animation-delay:.05s}.swap > *:nth-child(3){animation-delay:.1s}.swap > *:nth-child(4){animation-delay:.15s}.swap > *:nth-child(5){animation-delay:.2s}
 @keyframes rise{from{opacity:0; transform:translateY(14px); filter:blur(6px)}}
@@ -91,8 +123,8 @@ a{color:var(--beam)}
 .btn{display:inline-flex; align-items:center; gap:10px; height:50px; padding:0 24px 0 20px; border-radius:14px; font-weight:600; font-size:16px; transition:transform .25s var(--out),background .25s,box-shadow .3s; text-decoration:none; color:var(--fg)}
 .btn svg{width:22px; height:22px}
 .btn:active{transform:scale(.96)}
-.btn.play{background:var(--beam); color:var(--beam-ink); box-shadow:0 10px 40px -10px rgba(244,196,125,.7)}
-.btn.play:hover{box-shadow:0 14px 50px -8px rgba(244,196,125,.9); transform:translateY(-1px)}
+.btn.play{background:var(--grad); color:var(--beam-ink); box-shadow:0 10px 40px -10px rgba(255,130,100,.7)}
+.btn.play:hover{box-shadow:0 14px 50px -8px rgba(255,140,100,.9); transform:translateY(-1px)}
 .btn.ghost{background:rgba(255,255,255,.12)}
 .btn.ghost:hover{background:rgba(255,255,255,.2)}
 .dots{position:absolute; right:var(--gut-r); bottom:30px; display:flex; gap:8px}
@@ -102,19 +134,32 @@ a{color:var(--beam)}
 .hero.paused .dots button.on::after{animation-play-state:paused}
 @keyframes fill{from{transform:scaleX(0)}}
 
-/* rows */
+/* humeurs */
+.moods{padding-left:var(--gut-l); padding-right:var(--gut-r); margin-top:8px; display:grid; gap:14px}
+.moods h2{font-family:var(--f-display); font-weight:800; font-size:clamp(24px,3vw,32px); letter-spacing:-.03em; margin:0}
+.mood-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,160px),1fr)); gap:10px}
+.mood{position:relative; overflow:hidden; text-align:left; padding:16px 16px 18px; border-radius:16px; background:var(--ink-3); display:grid; gap:4px; min-height:108px; align-content:end; transition:transform .4s var(--ease),box-shadow .4s}
+.mood::before{content:""; position:absolute; inset:0; background:var(--tint); opacity:.32; transition:opacity .4s}
+.mood > *{position:relative}
+.mood svg{position:absolute; top:14px; right:14px; width:26px; height:26px; color:var(--fg); opacity:.85}
+.mood b{font-family:var(--f-display); font-size:20px; letter-spacing:-.02em; line-height:1.05}
+.mood span{font-size:12.5px; color:#e9dde2; opacity:.85}
+.mood:hover{transform:translateY(-3px)}
+.mood:hover::before{opacity:.55}
+
+/* rangées */
 main{position:relative; z-index:2; padding-bottom:80px}
 .section{margin-top:30px}
 .sec-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding-left:var(--gut-l); padding-right:var(--gut-r); margin-bottom:10px}
 .sec-head h2{font-family:var(--f-display); font-weight:700; font-size:22px; letter-spacing:-.02em; margin:0}
-.sec-head button{color:var(--dim); font-size:13px; transition:color .2s}
+.sec-head button{color:var(--dim); font-size:13px; transition:color .2s; flex:none}
 .sec-head button:hover{color:var(--beam)}
 .rail-wrap{position:relative}
 .rail{display:flex; gap:12px; overflow-x:auto; scroll-snap-type:x mandatory; scroll-padding-left:var(--gut-l); padding-left:var(--gut-l); padding-right:var(--gut-r); padding-block:10px 22px; scrollbar-width:none; overscroll-behavior-x:contain}
 .rail::-webkit-scrollbar{display:none}
 .arrow{position:absolute; top:10px; bottom:22px; width:var(--gut-l); min-width:44px; display:grid; place-items:center; z-index:4; opacity:0; transition:opacity .25s}
-.arrow.l{left:0; background:linear-gradient(90deg,rgba(13,11,19,.9),rgba(13,11,19,0))}
-.arrow.r{right:0; background:linear-gradient(270deg,rgba(13,11,19,.9),rgba(13,11,19,0))}
+.arrow.l{left:0; background:linear-gradient(90deg,rgba(14,11,18,.9),rgba(14,11,18,0))}
+.arrow.r{right:0; background:linear-gradient(270deg,rgba(14,11,18,.9),rgba(14,11,18,0))}
 .arrow svg{width:28px; height:28px; transition:transform .25s var(--out)}
 .arrow:hover svg{transform:scale(1.2)}
 @media (hover:hover){.rail-wrap:hover .arrow:not([disabled]){opacity:1}}
@@ -126,9 +171,9 @@ main{position:relative; z-index:2; padding-bottom:80px}
 .art .fg{position:absolute; inset:0; width:100%; height:100%; object-fit:contain; transition:transform .6s var(--ease)}
 .art::after{content:""; position:absolute; inset:0; background:linear-gradient(0deg,rgba(0,0,0,.75),rgba(0,0,0,0) 55%)}
 .art .t{position:absolute; left:14px; right:14px; bottom:11px; z-index:2; font-family:var(--f-display); font-weight:800; font-size:19px; line-height:1.02; letter-spacing:-.02em; text-shadow:0 2px 16px rgba(0,0,0,.7); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
-.art .yr{position:absolute; top:9px; right:9px; z-index:2; font-family:var(--f-mono); font-size:11px; padding:2px 7px; border-radius:5px; background:rgba(13,11,19,.7)}
+.art .yr{position:absolute; top:9px; right:9px; z-index:2; font-family:var(--f-mono); font-size:11px; padding:2px 7px; border-radius:5px; background:rgba(14,11,18,.7)}
 .card .pg{height:3px; border-radius:3px; background:rgba(255,255,255,.18); margin:8px 2px 0; overflow:hidden}
-.card .pg i{display:block; height:100%; background:var(--beam)}
+.card .pg i{display:block; height:100%; background:var(--grad)}
 .card .sub{font-size:12.5px; color:var(--muted); padding:5px 2px 0}
 .card .info{padding:8px 2px 0; max-height:0; opacity:0; overflow:hidden; transition:max-height .45s var(--ease),opacity .3s; font-size:12.5px; color:var(--muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical}
 @media (hover:hover) and (min-width:700px){
@@ -140,7 +185,7 @@ main{position:relative; z-index:2; padding-bottom:80px}
 @keyframes shim{from{background-position:100% 0} to{background-position:-50% 0}}
 
 .rank{flex:none; display:flex; align-items:flex-end; scroll-snap-align:start; position:relative; transition:transform .45s var(--ease)}
-.rank .n{font-family:var(--f-display); font-weight:800; font-size:clamp(110px,13vw,168px); line-height:.78; letter-spacing:-.08em; color:var(--ink); -webkit-text-stroke:2px rgba(244,196,125,.55); margin-right:-22px; user-select:none}
+.rank .n{font-family:var(--f-display); font-weight:800; font-size:clamp(110px,13vw,168px); line-height:.78; letter-spacing:-.08em; color:var(--ink); -webkit-text-stroke:2px rgba(255,168,119,.55); margin-right:-22px; user-select:none}
 .rank .art{width:clamp(130px,13vw,170px); aspect-ratio:3/4; box-shadow:-12px 0 30px rgba(0,0,0,.55)}
 .rank .art::after{display:none}
 @media (hover:hover){.rank:hover{transform:translateY(-6px)} .rank:hover .n{-webkit-text-stroke-color:var(--beam)}}
@@ -156,7 +201,6 @@ main{position:relative; z-index:2; padding-bottom:80px}
 .grid .card{width:auto}
 .status{padding:28px var(--gut-r) 20px var(--gut-l); color:var(--muted); display:grid; gap:10px; justify-items:start}
 .status h3{font-family:var(--f-display); font-size:22px; margin:0; color:var(--fg)}
-.status.err h3{color:var(--err)}
 .view-in{animation:fadeup .55s var(--out) both}
 @keyframes fadeup{from{opacity:0; transform:translateY(16px)}}
 
@@ -169,17 +213,17 @@ main{position:relative; z-index:2; padding-bottom:80px}
 .sheet .cover{position:relative; aspect-ratio:16/8; overflow:hidden; max-width:100%}
 .sheet .cover .blur{position:absolute; inset:-40px; width:calc(100% + 80px); height:calc(100% + 80px); object-fit:cover; filter:blur(30px) brightness(.55) saturate(1.3)}
 .sheet .cover .fg{position:absolute; top:8%; right:6%; height:70%; max-width:50%; object-fit:contain; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,.6)}
-.sheet .cover::after{content:""; position:absolute; inset:0; background:linear-gradient(0deg,var(--ink-2) 4%,rgba(21,18,29,0) 62%),linear-gradient(90deg,rgba(21,18,29,.7),rgba(21,18,29,0) 60%)}
-.sheet .close{position:absolute; top:14px; right:14px; z-index:3; background:rgba(13,11,19,.6)}
+.sheet .cover::after{content:""; position:absolute; inset:0; background:linear-gradient(0deg,var(--ink-2) 4%,rgba(22,18,27,0) 62%),linear-gradient(90deg,rgba(22,18,27,.7),rgba(22,18,27,0) 60%)}
+.sheet .close{position:absolute; top:14px; right:14px; z-index:3; background:rgba(14,11,18,.6)}
 .cover-in{position:absolute; left:32px; right:32px; bottom:24px; z-index:2; display:grid; gap:16px}
 .sheet h2{font-family:var(--f-display); font-weight:800; font-size:clamp(30px,4.6vw,52px); letter-spacing:-.035em; line-height:.96; margin:0; text-wrap:balance; max-width:20ch}
-.round{width:50px; height:50px; border-radius:50%; border:1.5px solid rgba(255,255,255,.4); display:grid; place-items:center; background:rgba(13,11,19,.35); transition:all .3s var(--out)}
+.round{width:50px; height:50px; border-radius:50%; border:1.5px solid rgba(255,255,255,.4); display:grid; place-items:center; background:rgba(14,11,18,.35); transition:all .3s var(--out); color:var(--fg)}
 .round:hover{border-color:var(--fg); background:rgba(255,255,255,.1)}
 .round svg{width:22px; height:22px}
 .round[aria-pressed="true"]{background:var(--fg); color:var(--ink); border-color:var(--fg)}
 .sheet-body{padding:8px 32px 32px; display:grid; gap:28px}
 .cols{display:grid; grid-template-columns:minmax(0,1.7fr) minmax(0,1fr); gap:28px}
-.desc{margin:0; color:#ddd6e8; font-size:15px; line-height:1.65; max-height:14em; overflow:auto; white-space:pre-line}
+.desc{margin:0; color:#e4d9de; font-size:15px; line-height:1.65; max-height:14em; overflow:auto; white-space:pre-line}
 .facts{display:grid; gap:10px; font-size:13.5px; color:var(--dim); align-content:start}
 .facts b{color:var(--fg); font-weight:500; overflow-wrap:anywhere}
 .sheet h3{font-family:var(--f-display); font-size:21px; margin:0; letter-spacing:-.02em}
@@ -187,9 +231,16 @@ main{position:relative; z-index:2; padding-bottom:80px}
 .similar .card{width:auto}
 .spin{width:22px; height:22px; border-radius:50%; border:2.5px solid rgba(255,255,255,.2); border-top-color:var(--beam); animation:rot .8s linear infinite}
 @keyframes rot{to{transform:rotate(360deg)}}
+.manifesto{display:grid; gap:18px; font-size:16px; line-height:1.65; color:#e4d9de; max-width:62ch}
+.manifesto h3{color:var(--fg)}
+.manifesto p{margin:0}
+.pillars{display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr)); gap:12px}
+.pillars div{padding:16px; border-radius:14px; background:var(--ink-3); display:grid; gap:4px}
+.pillars b{font-family:var(--f-display); font-size:17px; letter-spacing:-.01em}
+.pillars span{font-size:13.5px; color:var(--muted); line-height:1.45}
 
 /* recherche */
-.search{position:fixed; inset:0; z-index:80; background:rgba(13,11,19,.95); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); overflow-y:auto; opacity:0; transition:opacity .35s var(--out); padding-block:calc(24px + env(safe-area-inset-top,0px)) 60px}
+.search{position:fixed; inset:0; z-index:80; background:rgba(14,11,18,.95); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); overflow-y:auto; opacity:0; transition:opacity .35s var(--out); padding-block:calc(24px + env(safe-area-inset-top,0px)) 60px}
 .search.open{opacity:1}
 .search-bar{display:flex; align-items:center; gap:14px; padding-left:var(--gut-l); padding-right:var(--gut-r)}
 .search-bar svg{width:26px; height:26px; color:var(--beam); flex:none}
@@ -204,26 +255,14 @@ main{position:relative; z-index:2; padding-bottom:80px}
 .player video{position:absolute; inset:0; width:100%; height:100%; object-fit:contain; background:#000}
 .player canvas.up{position:absolute; inset:0; width:100%; height:100%; display:block; pointer-events:none}
 .player.upscaled video{opacity:0}
-.split{position:absolute; top:0; bottom:0; width:2px; margin-left:-1px; background:var(--beam); box-shadow:0 0 14px rgba(244,196,125,.7); cursor:ew-resize; touch-action:none; z-index:3}
+.split{position:absolute; top:0; bottom:0; width:2px; margin-left:-1px; background:var(--beam); box-shadow:0 0 14px rgba(255,168,119,.7); cursor:ew-resize; touch-action:none; z-index:3}
 .split::before{content:""; position:absolute; inset:0 -16px}
-.split .knob{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:38px; height:38px; border-radius:50%; background:var(--beam); color:var(--beam-ink); display:grid; place-items:center; box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.split .knob{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:38px; height:38px; border-radius:50%; background:var(--grad); color:var(--beam-ink); display:grid; place-items:center; box-shadow:0 6px 20px rgba(0,0,0,.5)}
 .split .knob svg{width:20px; height:20px}
 .split .ll,.split .lr{position:absolute; top:calc(90px + env(safe-area-inset-top,0px)); font-family:var(--f-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:3px 8px; border-radius:6px; background:rgba(0,0,0,.65); white-space:nowrap}
 .split .ll{right:14px} .split .lr{left:14px; color:var(--beam)}
-.hd{height:34px; padding:0 10px; border-radius:8px; font-family:var(--f-mono); font-weight:700; font-size:12px; letter-spacing:.06em; background:rgba(255,255,255,.1); margin-right:6px; transition:background .2s,color .2s}
-.hd:hover{background:rgba(255,255,255,.2)}
-.hd.on{background:var(--beam); color:var(--beam-ink)}
-.hdmenu{position:absolute; right:var(--gut-r); bottom:calc(92px + env(safe-area-inset-bottom,0px)); width:min(300px,calc(100vw - 32px)); background:rgba(20,17,28,.96); border:1px solid var(--line); border-radius:16px; padding:8px; box-shadow:0 24px 60px rgba(0,0,0,.6); transform-origin:bottom right; animation:pop .3s var(--ease)}
-.hdmenu h4{margin:6px 12px 8px; font-family:var(--f-mono); font-size:11px; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--dim)}
-.hdopt{display:grid; gap:1px; width:100%; text-align:left; padding:9px 12px; border-radius:10px; transition:background .2s}
-.hdopt:hover{background:rgba(255,255,255,.06)}
-.hdopt small{color:var(--dim); font-size:12px}
-.hdopt[aria-checked="true"]{background:rgba(244,196,125,.13)}
-.hdopt[aria-checked="true"] b{color:var(--beam)}
-.hdmenu .row{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 12px 6px; border-top:1px solid var(--line); margin-top:6px; font-size:14px}
-.p-ui{pointer-events:none}
+.p-ui{position:absolute; inset:0; display:flex; flex-direction:column; justify-content:space-between; opacity:0; transition:opacity .45s var(--out); background:linear-gradient(180deg,rgba(0,0,0,.7),rgba(0,0,0,0) 22%,rgba(0,0,0,0) 60%,rgba(0,0,0,.85)); pointer-events:none}
 .p-ui > *{pointer-events:auto}
-.p-ui{position:absolute; inset:0; display:flex; flex-direction:column; justify-content:space-between; opacity:0; transition:opacity .45s var(--out); background:linear-gradient(180deg,rgba(0,0,0,.7),rgba(0,0,0,0) 22%,rgba(0,0,0,0) 60%,rgba(0,0,0,.85))}
 .player.ui .p-ui{opacity:1}
 .p-top{display:flex; align-items:center; gap:16px; padding-top:calc(18px + env(safe-area-inset-top,0px)); padding-left:var(--gut-l); padding-right:var(--gut-r)}
 .p-top h3{margin:0; font-family:var(--f-display); font-size:20px; letter-spacing:-.02em}
@@ -231,7 +270,7 @@ main{position:relative; z-index:2; padding-bottom:80px}
 .p-mid{position:absolute; inset:0; display:grid; place-items:center; pointer-events:none}
 .p-flash{width:86px; height:86px; border-radius:50%; background:rgba(0,0,0,.45); display:grid; place-items:center; opacity:0}
 .p-flash.go{animation:flash .6s var(--out)}
-@keyframes flash{30%{opacity:1; transform:scale(1)} from{transform:scale(.8)} to{opacity:0; transform:scale(1.25)}}
+@keyframes flash{from{transform:scale(.8)} 30%{opacity:1; transform:scale(1)} to{opacity:0; transform:scale(1.25)}}
 .p-flash svg{width:38px; height:38px}
 .p-load{position:absolute; inset:0; display:grid; place-items:center; pointer-events:none}
 .p-load .spin{width:54px; height:54px; border-width:3px}
@@ -242,13 +281,13 @@ main{position:relative; z-index:2; padding-bottom:80px}
 .scrub .tr{position:relative; width:100%; height:4px; border-radius:4px; background:rgba(255,255,255,.22); transition:height .2s var(--out)}
 .scrub:hover .tr,.scrub.drag .tr{height:7px}
 .scrub .bf{position:absolute; inset:0 auto 0 0; background:rgba(255,255,255,.32); border-radius:4px}
-.scrub .fl{position:absolute; inset:0 auto 0 0; background:var(--beam); border-radius:4px}
-.scrub .kn{position:absolute; top:50%; width:15px; height:15px; margin:-7.5px 0 0 -7.5px; border-radius:50%; background:var(--beam); box-shadow:0 0 0 5px rgba(244,196,125,.25); transform:scale(0); transition:transform .2s var(--out)}
+.scrub .fl{position:absolute; inset:0 auto 0 0; background:var(--grad); border-radius:4px}
+.scrub .kn{position:absolute; top:50%; width:15px; height:15px; margin:-7.5px 0 0 -7.5px; border-radius:50%; background:var(--mood-2); box-shadow:0 0 0 5px rgba(255,200,107,.25); transform:scale(0); transition:transform .2s var(--out)}
 .scrub:hover .kn,.scrub.drag .kn{transform:scale(1)}
-.scrub .tip{position:absolute; bottom:24px; transform:translateX(-50%); background:rgba(20,17,28,.92); padding:4px 8px; border-radius:6px; font-size:12px; opacity:0; transition:opacity .2s; pointer-events:none}
+.scrub .tip{position:absolute; bottom:24px; transform:translateX(-50%); background:rgba(22,18,27,.92); padding:4px 8px; border-radius:6px; font-size:12px; opacity:0; transition:opacity .2s; pointer-events:none}
 .scrub:hover .tip{opacity:1}
 .p-ctrl{display:flex; align-items:center; gap:4px; flex-wrap:wrap}
-.p-ctrl .time{margin-left:8px; color:#d8d2e2; font-size:13px}
+.p-ctrl .time{margin-left:8px; color:#e0d6dc; font-size:13px}
 .p-ctrl .sp{flex:1}
 .p-ctrl .icon-btn{width:46px; height:46px}
 .p-ctrl .icon-btn svg{width:26px; height:26px}
@@ -257,24 +296,50 @@ main{position:relative; z-index:2; padding-bottom:80px}
 .vol:hover input,.vol input:focus{width:90px; opacity:1}
 .speed{height:34px; padding:0 10px; border-radius:8px; font-family:var(--f-mono); font-size:13px; background:rgba(255,255,255,.1)}
 .speed:hover{background:rgba(255,255,255,.2)}
+.hd{height:34px; padding:0 10px; border-radius:8px; font-family:var(--f-mono); font-weight:700; font-size:12px; letter-spacing:.06em; background:rgba(255,255,255,.1); margin-right:6px; transition:background .2s,color .2s}
+.hd:hover{background:rgba(255,255,255,.2)}
+.hd.on{background:var(--grad); color:var(--beam-ink)}
+.hdmenu{position:absolute; right:var(--gut-r); bottom:calc(92px + env(safe-area-inset-bottom,0px)); width:min(300px,calc(100vw - 32px)); background:rgba(22,18,27,.96); border:1px solid var(--line); border-radius:16px; padding:8px; box-shadow:0 24px 60px rgba(0,0,0,.6); transform-origin:bottom right; animation:pop .3s var(--ease)}
+.hdmenu h4{margin:6px 12px 8px; font-family:var(--f-mono); font-size:11px; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--dim)}
+.hdopt{display:grid; gap:1px; width:100%; text-align:left; padding:9px 12px; border-radius:10px; transition:background .2s}
+.hdopt:hover{background:rgba(255,255,255,.06)}
+.hdopt small{color:var(--dim); font-size:12px}
+.hdopt[aria-checked="true"]{background:rgba(255,168,119,.13)}
+.hdopt[aria-checked="true"] b{color:var(--beam)}
+.hdmenu .row{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 12px 6px; border-top:1px solid var(--line); margin-top:6px; font-size:14px}
 
 /* toasts */
 .toasts{position:fixed; left:50%; bottom:calc(24px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); z-index:100; display:grid; gap:8px; justify-items:center; pointer-events:none}
 .toast{display:flex; align-items:center; gap:10px; padding:10px 16px 10px 12px; border-radius:999px; background:var(--fg); color:var(--ink); font-weight:500; font-size:14px; box-shadow:0 14px 40px rgba(0,0,0,.45); animation:tin .5s var(--ease) both; white-space:nowrap}
 .toast.out{animation:tout .35s var(--out) forwards}
-.toast i{width:22px; height:22px; border-radius:50%; background:var(--beam); display:grid; place-items:center}
+.toast i{width:22px; height:22px; border-radius:50%; background:var(--grad); display:grid; place-items:center}
 .toast svg{width:13px; height:13px; color:var(--beam-ink)}
 @keyframes tin{from{opacity:0; transform:translateY(16px) scale(.9)}}
 @keyframes tout{to{opacity:0; transform:translateY(8px) scale(.95)}}
 
-.foot{padding:30px var(--gut-r) 40px var(--gut-l); color:var(--dim); font-size:12.5px; border-top:1px solid var(--line); margin-top:40px}
+/* pied de page */
+.foot{padding-block:40px 48px; padding-left:var(--gut-l); padding-right:var(--gut-r); color:var(--dim); font-size:13px; border-top:1px solid var(--line); margin-top:40px; display:flex; flex-wrap:wrap; gap:28px 60px; align-items:flex-start}
+.foot .brand{display:grid; gap:10px; max-width:320px}
+.foot .brand p{margin:0; color:var(--muted)}
+.foot nav{display:grid; gap:8px}
+.foot nav b{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); font-weight:500}
+.foot nav button{color:var(--muted); text-align:left; transition:color .2s}
+.foot nav button:hover{color:var(--beam)}
+.foot small{flex-basis:100%; color:var(--dim); line-height:1.6}
 
 /* mobile */
-.tabbar{display:none}
+.tabbar,.msearch{display:none}
+.decades{display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px}
+.decades::-webkit-scrollbar{display:none}
+.decades .chip{flex:none; font-family:var(--f-mono); font-size:12.5px}
+.archive-band{margin:34px var(--gut-r) 0 var(--gut-l); border-radius:20px; padding:26px 28px; background:linear-gradient(120deg,rgba(255,122,107,.16),rgba(255,200,107,.08)),var(--ink-2); box-shadow:inset 0 0 0 1px var(--line); display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px 28px}
+.archive-band h2{font-family:var(--f-display); font-weight:800; font-size:clamp(24px,3vw,34px); letter-spacing:-.03em; margin:0 0 4px}
+.archive-band p{margin:0; color:var(--muted); max-width:60ch}
 @media (max-width:760px){
-  .nav,.searchpill,.avatar{display:none}
+  .msearch{display:grid}
+  .nav,.searchpill,.avatar,.top .lang{display:none}
   .hero{min-height:clamp(460px,78vh,640px); text-align:center}
-  .hero::after{background:linear-gradient(0deg,var(--ink) 4%,rgba(13,11,19,.6) 50%,rgba(13,11,19,.2) 100%)}
+  .hero::after{background:linear-gradient(0deg,var(--ink) 4%,rgba(14,11,18,.6) 50%,rgba(14,11,18,.2) 100%)}
   .hero-in{grid-template-columns:minmax(0,1fr); justify-items:center; padding-block:96px 50px}
   .hero-txt{justify-items:center}
   .frame{order:-1; width:min(62vw,260px)}
@@ -284,8 +349,9 @@ main{position:relative; z-index:2; padding-bottom:80px}
   .actions .btn{flex:1; justify-content:center; padding:0 16px; max-width:200px}
   .dots{left:0; right:0; justify-content:center; bottom:20px}
   .card{width:68vw}
-  .tabbar{display:flex; position:fixed; left:0; right:0; bottom:0; z-index:55; justify-content:space-around; padding-top:8px; padding-bottom:calc(8px + env(safe-area-inset-bottom,0px)); padding-left:var(--gut-l); padding-right:var(--gut-r); background:rgba(13,11,19,.85); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); box-shadow:0 -1px 0 var(--line)}
-  .tabbar button{display:grid; justify-items:center; gap:3px; font-size:11px; color:var(--dim); padding:4px 10px}
+  .mood-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tabbar{display:flex; position:fixed; left:0; right:0; bottom:0; z-index:55; justify-content:space-around; padding-top:8px; padding-bottom:calc(8px + env(safe-area-inset-bottom,0px)); padding-left:var(--gut-l); padding-right:var(--gut-r); background:rgba(14,11,18,.85); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); box-shadow:0 -1px 0 var(--line)}
+  .tabbar button{display:grid; justify-items:center; gap:3px; font-size:11px; color:var(--dim); padding:4px 8px}
   .tabbar button svg{width:23px; height:23px; transition:transform .3s var(--ease)}
   .tabbar button[aria-current="page"]{color:var(--fg)}
   .tabbar button[aria-current="page"] svg{transform:translateY(-2px); color:var(--beam)}
@@ -307,41 +373,116 @@ main{position:relative; z-index:2; padding-bottom:80px}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="cmGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff7a6b"/><stop offset="1" stop-color="#ffc86b"/></linearGradient></defs></svg>
+<div class="splash" id="splash" aria-hidden="true"></div>
 <header class="top" id="top">
-  <div class="logo"><i></i>lumen</div>
-  <nav class="nav" aria-label="Sections">
-    <button data-view="home" aria-current="page">Accueil</button>
-    <button data-view="films">Tous les films</button>
-    <button data-view="kids">Kids</button>
-    <button data-view="list">Ma liste</button>
-  </nav>
+  <button class="logo" id="logo" data-view="home"></button>
+  <nav class="nav" aria-label="Sections" id="nav"></nav>
   <div class="sp"></div>
-  <button class="searchpill" data-search><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Rechercher<span class="kbd">/</span></button>
-  <button class="avatar" id="avatar" aria-label="Réglages" aria-haspopup="true" aria-expanded="false">R</button>
-  <div class="menu" id="menu" hidden>
-    <div class="row"><div>Mode économie d'effets<small>Coupe flous et animations lourdes</small></div><button class="switch" id="lowspec" role="switch" aria-checked="false" aria-label="Mode économie d'effets"></button></div>
-    <div class="row"><div>Effacer l'historique<small>Vide la rangée « Reprendre »</small></div><button class="speed" id="clearHist">Effacer</button></div>
-  </div>
+  <button class="searchpill" data-search id="searchpill"></button>
+  <button class="icon-btn msearch" data-search id="msearch"></button>
+  <select class="lang" id="lang" aria-label="Language"><option value="en">EN</option><option value="fr">FR</option><option value="es">ES</option></select>
+  <button class="avatar" id="avatar" aria-haspopup="true" aria-expanded="false">C</button>
+  <div class="menu" id="menu" hidden></div>
 </header>
-
 <div id="app"></div>
-
-<nav class="tabbar" aria-label="Navigation">
-  <button data-view="home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5V20h-5v-6H9v6H4z"/></svg>Accueil</button>
-  <button data-view="films"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 8h16M4 16h16M9 3v18M15 3v18"/></svg>Films</button>
-  <button data-view="kids"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>Kids</button>
-  <button data-search><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Recherche</button>
-  <button data-view="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Ma liste</button>
-</nav>
+<nav class="tabbar" aria-label="Navigation" id="tabbar"></nav>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script>
 (function(){
 "use strict";
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
-const store={get(k,d){try{const v=localStorage.getItem("lumen-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("lumen-"+k,JSON.stringify(v))}catch(e){}}};
+const store={get(k,d){try{const v=localStorage.getItem("cinemood-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("cinemood-"+k,JSON.stringify(v))}catch(e){}}};
+// reprise des données de l'ancienne version
+try{["progress","list","settings"].forEach(k=>{if(localStorage.getItem("cinemood-"+k)==null&&localStorage.getItem("lumen-"+k)!=null)localStorage.setItem("cinemood-"+k,localStorage.getItem("lumen-"+k))})}catch(e){}
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const plain=s=>{if(Array.isArray(s))s=s.join("\n"); s=String(s??""); try{const d=new DOMParser().parseFromString(s.replace(/<br\s*\/?>/gi,"\n").replace(/<\/p>/gi,"\n"),"text/html"); return (d.body.textContent||"").replace(/\n{3,}/g,"\n\n").trim()}catch(e){return s.replace(/<[^>]+>/g,"").trim()}};
+
+/* ---------- langues ---------- */
+const D={
+en:{tagline:"Old films. New mood.",home:"Home",films:"All films",kids:"Kids",list:"My list",search:"Search",search_ph:"Title, genre, director…",search_hint:"Try “Nosferatu”, “Chaplin”, “zombie” or “noir”. Esc to close.",searching:"Searching…",results_one:"{n} result",results_other:"{n} results",results_top:" · top 48 most watched",no_results:"Nothing matches “{q}”. Try the original English title or a genre.",search_err:"Search failed: Internet Archive isn't responding. Try again in a moment.",close_search:"Close search",
+ about_menu:"About Cinemood",about_menu_d:"Our catalogue and live restoration",low:"Low-effects mode",low_d:"Turns off blur and heavy animation",clear_hist:"Clear history",clear_hist_d:"Empties “Continue watching”",clear:"Clear",language:"Language",settings:"Settings",
+ pd:"Public domain",loading_cat:"Loading the catalogue…",cat_unavail:"Catalogue unavailable",hero_intro:"Thousands of free classic films, from silent cinema to sci-fi B-movies.",most_watched:"Most watched",views:"{n} views",vo:"Original audio",play:"Play",resume:"Resume",more_info:"More info",
+ mood_title:"What are you in the mood for?",row_resume:"Continue watching",row_top:"Top 10 most watched",see_all:"See all",min_left:"{n} min left",in_progress:"In progress",
+ load_fail:"Couldn't load",load_fail_d:"Internet Archive isn't responding. Check your connection and try again.",retry:"Retry",
+ films_avail:"{n} films available",all_seen:"That's everything: {n} films.",none_here:"No films here",kids_note:"Classic cartoons and family films, with no horror or war. The selection is automatic, so take a quick look before playing a film for little ones: some old cartoons carry stereotypes of their time.",
+ list_empty:"Your list is empty",list_empty_d:"Add a film with the + button on its page and it will show up here.",browse:"Browse films",
+ sort_pop:"Popular",sort_old:"Oldest",sort_new:"Newest",sort_az:"A → Z",chip_all:"All",
+ c_kids:"Kids",c_feature_films:"Feature films",c_Film_Noir:"Film noir",c_SciFi_Horror:"Sci-fi & horror",c_Comedy_Films:"Comedies",c_silent_films:"Silent cinema",c_classic_cartoons:"Classic cartoons",
+ m_laugh:"Laugh",m_laugh_d:"Comedies & slapstick",m_mystery:"Mystery",m_mystery_d:"Film noir & suspense",m_chills:"Chills",m_chills_d:"Sci-fi & horror",m_dream:"Dreamy",m_dream_d:"Silent classics",m_family:"Family",m_family_d:"Safe for kids",m_toons:"Toons",m_toons_d:"Golden-age cartoons",
+ similar:"More like this",no_similar:"No suggestions for this film.",no_desc:"No description provided by Internet Archive.",credits:"Director / source",themes:"Themes",lang_f:"Language",license:"License",see_license:"view license",pd_ia:"Public domain (per Internet Archive)",no_file:"No directly playable video file for this film.",details_unavail:"Details unavailable right now.",view_ia:"View on Internet Archive",added:"Added to My list",removed:"Removed from My list",
+ back:"Leave player",play_a:"Play",pause_a:"Pause",rw:"Back 10 seconds",ff:"Forward 10 seconds",mute:"Mute",volume:"Volume",speed:"Playback speed",full:"Fullscreen",position:"Playback position",cant_play:"Can't play this film",cant_file:"The video file couldn't be loaded. It may be unavailable or in a format your browser can't play.",cant_none:"Internet Archive has no directly playable video file for this film.",cant_reach:"Couldn't reach Internet Archive. Check your connection and try again.",open_ia:"Open on Internet Archive",resume_at:"Resuming at {t}",finished:"Film finished",
+ restore:"Cinemood Restore",restore_a:"Image restoration",compare:"Compare before / after",eng_gpu:"Engine: graphics card (WebGL)",eng_soft:"Compatible engine: this film doesn't allow full processing, a lighter filter is used.",original:"Original",restored:"Restored",restore_t:"Restore: {m}",restore_off_t:"Original image",
+ r_off:"Off",r_off_d:"Original image",r_natural:"Natural",r_natural_d:"Clean upscale, no visible effect",r_anim:"Animation",r_anim_d:"Crisp lines, richer colour, less noise",r_old:"Vintage film",r_old_d:"Reduces grain and light scratches",r_max:"Max sharpness",r_max_d:"Boosts detail, may bring out grain",
+ webgl_no:"Restoration needs WebGL, which this browser doesn't offer.",gpu_no:"Your graphics card doesn't support restoration.",
+ low_on:"Low-effects mode on",low_off:"Full effects back on",hist_cleared:"History cleared",
+ about_eyebrow:"About",about_h:"Old films. New mood.",about_p1:"Cinemood brings together thousands of films in the public domain: silent cinema, film noir, sci-fi B-movies, comedies and golden-age cartoons. They belong to everyone, so we make them a joy to watch.",p1:"Free",p1d:"No subscription, no account, no ads.",p2:"Restored",p2d:"The picture is cleaned and sharpened live by your graphics card.",p3:"Open",p3d:"Every film links to its source and license on Internet Archive.",about_h2:"Where do the films come from?",about_p2:"The catalogue loads live from Internet Archive's public collections, a non-profit digital library. Cinemood hosts no video: films play straight from the source.",about_h3:"How does restoration work?",about_p3:"The HD button in the player scales the picture to your screen, then sharpens edges, reduces grain and enriches colour. It can't invent detail that isn't there, but an old copy becomes far nicer to watch.",explore:"Explore the catalogue",
+ foot_free:"Free, ad-free, no account needed.",explore_h:"Explore",brand_h:"Cinemood",foot_note:"Films from the public collections of {ia}, mostly in the public domain. Each film's status is shown on its source page. Study project, {y}.",
+ dur_h:"{h}h {m}",dur_m:"{m} min",cloud:"Home"},
+fr:{tagline:"Vieux films. Nouveau mood.",home:"Accueil",films:"Tous les films",kids:"Kids",list:"Ma liste",search:"Rechercher",search_ph:"Titre, genre, réalisateur…",search_hint:"Essayez « Nosferatu », « Chaplin », « zombie » ou « noir ». Échap pour fermer.",searching:"Recherche…",results_one:"{n} résultat",results_other:"{n} résultats",results_top:" · les 48 plus regardés",no_results:"Aucun film ne correspond à « {q} ». Essayez le titre original en anglais ou un genre.",search_err:"Recherche impossible : Internet Archive ne répond pas. Réessayez dans un instant.",close_search:"Fermer la recherche",
+ about_menu:"À propos de Cinemood",about_menu_d:"Notre catalogue et la restauration en direct",low:"Mode économie d'effets",low_d:"Coupe flous et animations lourdes",clear_hist:"Effacer l'historique",clear_hist_d:"Vide la rangée « Reprendre »",clear:"Effacer",language:"Langue",settings:"Réglages",
+ pd:"Domaine public",loading_cat:"Chargement du catalogue…",cat_unavail:"Catalogue indisponible",hero_intro:"Des milliers de films classiques gratuits, du cinéma muet aux séries B de science-fiction.",most_watched:"Les plus regardés",views:"{n} visionnages",vo:"VO",play:"Lecture",resume:"Reprendre",more_info:"Plus d'infos",
+ mood_title:"Vous êtes d'humeur à quoi ?",row_resume:"Reprendre",row_top:"Top 10 des plus regardés",see_all:"Tout voir",min_left:"{n} min restantes",in_progress:"En cours",
+ load_fail:"Chargement impossible",load_fail_d:"Internet Archive ne répond pas. Vérifiez votre connexion puis réessayez.",retry:"Réessayer",
+ films_avail:"{n} films disponibles",all_seen:"Vous avez tout vu : {n} films.",none_here:"Aucun film ici",kids_note:"Dessins animés classiques et films familiaux, sans horreur ni guerre. La sélection est automatique : jetez un œil avant de lancer un film pour les plus petits, certains dessins animés anciens contiennent des clichés de leur époque.",
+ list_empty:"Votre liste est vide",list_empty_d:"Ajoutez un film avec le bouton + sur sa fiche, il apparaîtra ici.",browse:"Parcourir les films",
+ sort_pop:"Populaires",sort_old:"Plus anciens",sort_new:"Plus récents",sort_az:"A → Z",chip_all:"Tout",
+ c_kids:"Kids",c_feature_films:"Longs métrages",c_Film_Noir:"Film noir",c_SciFi_Horror:"Science-fiction & horreur",c_Comedy_Films:"Comédies",c_silent_films:"Cinéma muet",c_classic_cartoons:"Dessins animés classiques",
+ m_laugh:"Rire",m_laugh_d:"Comédies & burlesque",m_mystery:"Mystère",m_mystery_d:"Film noir & suspense",m_chills:"Frissons",m_chills_d:"Science-fiction & horreur",m_dream:"Rêverie",m_dream_d:"Classiques du muet",m_family:"Famille",m_family_d:"Pour les enfants",m_toons:"Cartoons",m_toons_d:"Dessins animés de l'âge d'or",
+ similar:"Dans la même veine",no_similar:"Pas de suggestion pour ce film.",no_desc:"Aucune description fournie par Internet Archive.",credits:"Réalisation / origine",themes:"Thèmes",lang_f:"Langue",license:"Licence",see_license:"voir la licence",pd_ia:"Domaine public (selon Internet Archive)",no_file:"Aucun fichier vidéo lisible directement pour ce film.",details_unavail:"Détails indisponibles pour le moment.",view_ia:"Voir sur Internet Archive",added:"Ajouté à Ma liste",removed:"Retiré de Ma liste",
+ back:"Quitter le lecteur",play_a:"Lecture",pause_a:"Pause",rw:"Reculer de 10 secondes",ff:"Avancer de 10 secondes",mute:"Couper le son",volume:"Volume",speed:"Vitesse de lecture",full:"Plein écran",position:"Position de lecture",cant_play:"Lecture impossible",cant_file:"Le fichier vidéo n'a pas pu être chargé. Il est peut-être indisponible ou dans un format que votre navigateur ne lit pas.",cant_none:"Internet Archive ne propose pas de fichier vidéo lisible directement pour ce film.",cant_reach:"Impossible de joindre Internet Archive. Vérifiez votre connexion puis réessayez.",open_ia:"Ouvrir sur Internet Archive",resume_at:"Reprise à {t}",finished:"Film terminé",
+ restore:"Restauration Cinemood",restore_a:"Restauration de l'image",compare:"Comparer avant / après",eng_gpu:"Moteur : carte graphique (WebGL)",eng_soft:"Moteur compatible : ce film ne permet pas le traitement complet, un filtre plus léger est utilisé.",original:"Original",restored:"Restauré",restore_t:"Restauration : {m}",restore_off_t:"Image d'origine",
+ r_off:"Désactivé",r_off_d:"Image d'origine",r_natural:"Naturel",r_natural_d:"Agrandissement net, sans effet visible",r_anim:"Animation",r_anim_d:"Contours nets, couleurs ravivées, moins de bruit",r_old:"Film ancien",r_old_d:"Réduit le grain et les rayures légères",r_max:"Netteté max",r_max_d:"Détails accentués, peut faire ressortir le grain",
+ webgl_no:"La restauration demande WebGL, indisponible sur ce navigateur.",gpu_no:"Votre carte graphique ne prend pas en charge la restauration.",
+ low_on:"Mode économie activé",low_off:"Effets complets réactivés",hist_cleared:"Historique effacé",
+ about_eyebrow:"À propos",about_h:"Vieux films. Nouveau mood.",about_p1:"Cinemood rassemble des milliers de films tombés dans le domaine public : cinéma muet, films noirs, séries B de science-fiction, comédies et dessins animés de l'âge d'or. Ils appartiennent à tout le monde, alors on les rend agréables à regarder.",p1:"Gratuit",p1d:"Aucun abonnement, aucun compte, aucune publicité.",p2:"Restauré",p2d:"L'image est nettoyée et affinée en direct par votre carte graphique.",p3:"Ouvert",p3d:"Chaque film renvoie vers sa source et sa licence sur Internet Archive.",about_h2:"D'où viennent les films ?",about_p2:"Le catalogue est chargé en direct depuis les collections publiques d'Internet Archive, une bibliothèque numérique à but non lucratif. Cinemood n'héberge aucune vidéo : les films sont lus directement depuis la source.",about_h3:"Comment marche la restauration ?",about_p3:"Le bouton HD du lecteur agrandit l'image à la taille de votre écran, puis renforce les contours, réduit le grain et ravive les couleurs. Ça ne crée pas de détails qui n'existent pas, mais une copie ancienne devient nettement plus agréable à regarder.",explore:"Explorer le catalogue",
+ foot_free:"Gratuit, sans publicité, sans compte.",explore_h:"Explorer",brand_h:"Cinemood",foot_note:"Films issus des collections publiques d'{ia}, majoritairement dans le domaine public. Le statut de chaque film est indiqué sur sa page d'origine. Projet d'étude, {y}.",
+ dur_h:"{h} h {m}",dur_m:"{m} min"},
+es:{tagline:"Cine de siempre. Nuevo mood.",home:"Inicio",films:"Todas las películas",kids:"Kids",list:"Mi lista",search:"Buscar",search_ph:"Título, género, director…",search_hint:"Prueba «Nosferatu», «Chaplin», «zombie» o «noir». Esc para cerrar.",searching:"Buscando…",results_one:"{n} resultado",results_other:"{n} resultados",results_top:" · las 48 más vistas",no_results:"Ninguna película coincide con «{q}». Prueba el título original en inglés o un género.",search_err:"No se pudo buscar: Internet Archive no responde. Inténtalo de nuevo en un momento.",close_search:"Cerrar búsqueda",
+ about_menu:"Acerca de Cinemood",about_menu_d:"Nuestro catálogo y la restauración en directo",low:"Modo de efectos ligeros",low_d:"Desactiva desenfoques y animaciones pesadas",clear_hist:"Borrar historial",clear_hist_d:"Vacía «Seguir viendo»",clear:"Borrar",language:"Idioma",settings:"Ajustes",
+ pd:"Dominio público",loading_cat:"Cargando el catálogo…",cat_unavail:"Catálogo no disponible",hero_intro:"Miles de películas clásicas gratis, del cine mudo a la serie B de ciencia ficción.",most_watched:"Las más vistas",views:"{n} reproducciones",vo:"VO",play:"Reproducir",resume:"Continuar",more_info:"Más información",
+ mood_title:"¿Qué te apetece ver?",row_resume:"Seguir viendo",row_top:"Top 10 de las más vistas",see_all:"Ver todo",min_left:"Quedan {n} min",in_progress:"En curso",
+ load_fail:"No se pudo cargar",load_fail_d:"Internet Archive no responde. Comprueba tu conexión e inténtalo de nuevo.",retry:"Reintentar",
+ films_avail:"{n} películas disponibles",all_seen:"Lo has visto todo: {n} películas.",none_here:"No hay películas aquí",kids_note:"Dibujos animados clásicos y películas familiares, sin terror ni guerra. La selección es automática: échale un vistazo antes de ponerle una película a los más pequeños, algunos dibujos antiguos contienen estereotipos de su época.",
+ list_empty:"Tu lista está vacía",list_empty_d:"Añade una película con el botón + de su ficha y aparecerá aquí.",browse:"Explorar películas",
+ sort_pop:"Populares",sort_old:"Más antiguas",sort_new:"Más recientes",sort_az:"A → Z",chip_all:"Todo",
+ c_kids:"Kids",c_feature_films:"Largometrajes",c_Film_Noir:"Cine negro",c_SciFi_Horror:"Ciencia ficción y terror",c_Comedy_Films:"Comedias",c_silent_films:"Cine mudo",c_classic_cartoons:"Dibujos animados clásicos",
+ m_laugh:"Reír",m_laugh_d:"Comedias y slapstick",m_mystery:"Misterio",m_mystery_d:"Cine negro y suspense",m_chills:"Escalofríos",m_chills_d:"Ciencia ficción y terror",m_dream:"Soñar",m_dream_d:"Clásicos del mudo",m_family:"Familia",m_family_d:"Para los peques",m_toons:"Cartoons",m_toons_d:"Dibujos de la edad de oro",
+ similar:"Más como esta",no_similar:"No hay sugerencias para esta película.",no_desc:"Internet Archive no ofrece descripción.",credits:"Dirección / origen",themes:"Temas",lang_f:"Idioma",license:"Licencia",see_license:"ver la licencia",pd_ia:"Dominio público (según Internet Archive)",no_file:"No hay archivo de vídeo reproducible directamente para esta película.",details_unavail:"Detalles no disponibles por ahora.",view_ia:"Ver en Internet Archive",added:"Añadida a Mi lista",removed:"Quitada de Mi lista",
+ back:"Salir del reproductor",play_a:"Reproducir",pause_a:"Pausa",rw:"Retroceder 10 segundos",ff:"Avanzar 10 segundos",mute:"Silenciar",volume:"Volumen",speed:"Velocidad",full:"Pantalla completa",position:"Posición de reproducción",cant_play:"No se puede reproducir",cant_file:"No se pudo cargar el archivo de vídeo. Puede que no esté disponible o que tu navegador no lea ese formato.",cant_none:"Internet Archive no ofrece un archivo de vídeo reproducible directamente para esta película.",cant_reach:"No se pudo conectar con Internet Archive. Comprueba tu conexión e inténtalo de nuevo.",open_ia:"Abrir en Internet Archive",resume_at:"Continuando en {t}",finished:"Película terminada",
+ restore:"Restauración Cinemood",restore_a:"Restauración de imagen",compare:"Comparar antes / después",eng_gpu:"Motor: tarjeta gráfica (WebGL)",eng_soft:"Motor compatible: esta película no permite el procesado completo, se usa un filtro más ligero.",original:"Original",restored:"Restaurada",restore_t:"Restauración: {m}",restore_off_t:"Imagen original",
+ r_off:"Desactivada",r_off_d:"Imagen original",r_natural:"Natural",r_natural_d:"Escalado limpio, sin efecto visible",r_anim:"Animación",r_anim_d:"Contornos nítidos, colores vivos, menos ruido",r_old:"Película antigua",r_old_d:"Reduce el grano y los arañazos leves",r_max:"Nitidez máxima",r_max_d:"Realza el detalle, puede resaltar el grano",
+ webgl_no:"La restauración necesita WebGL, que este navegador no ofrece.",gpu_no:"Tu tarjeta gráfica no admite la restauración.",
+ low_on:"Modo ligero activado",low_off:"Efectos completos de nuevo",hist_cleared:"Historial borrado",
+ about_eyebrow:"Acerca de",about_h:"Cine de siempre. Nuevo mood.",about_p1:"Cinemood reúne miles de películas de dominio público: cine mudo, cine negro, serie B de ciencia ficción, comedias y dibujos animados de la edad de oro. Son de todos, así que las hacemos fáciles y agradables de ver.",p1:"Gratis",p1d:"Sin suscripción, sin cuenta, sin anuncios.",p2:"Restaurado",p2d:"Tu tarjeta gráfica limpia y afina la imagen en directo.",p3:"Abierto",p3d:"Cada película enlaza a su fuente y licencia en Internet Archive.",about_h2:"¿De dónde vienen las películas?",about_p2:"El catálogo se carga en directo desde las colecciones públicas de Internet Archive, una biblioteca digital sin ánimo de lucro. Cinemood no aloja vídeos: las películas se reproducen directamente desde la fuente.",about_h3:"¿Cómo funciona la restauración?",about_p3:"El botón HD del reproductor escala la imagen a tu pantalla, realza los contornos, reduce el grano y aviva los colores. No inventa detalles que no existen, pero una copia antigua se vuelve mucho más agradable de ver.",explore:"Explorar el catálogo",
+ foot_free:"Gratis, sin anuncios, sin cuenta.",explore_h:"Explorar",brand_h:"Cinemood",foot_note:"Películas de las colecciones públicas de {ia}, en su mayoría de dominio público. El estado de cada película figura en su página de origen. Proyecto de estudios, {y}.",
+ dur_h:"{h} h {m}",dur_m:"{m} min"}
+};
+Object.assign(D.en,{archive:"Archive",archive_intro:"Cinema from before 2000: silent films, film noir, B-movies and golden-age cartoons, mostly in the public domain.",films_intro:"Independent films, animation and open movies released since 2000 under free licenses.",decade_all:"All decades",decade:"{d}s",row_archive:"From the Archive · before 2000",free_lic:"Free license",
+ hero_intro:"Independent films, animation and open movies from 2000 to today. Free, legal, restored live.",
+ c_m_open:"Open movies",c_m_anim:"Animation",c_m_comedy:"Comedy",c_m_thriller:"Thriller & mystery",c_m_scifi:"Sci-fi & horror",c_m_drama:"Drama & romance",c_m_doc:"Documentaries",c_m_short:"Short films",c_m_kids:"Kids",
+ m_laugh_d:"Comedies",m_mystery_d:"Thrillers & mysteries",m_chills_d:"Sci-fi & horror",m_dream_d:"Drama & romance",m_toons_d:"Animation",
+ kids_note:"Animation and family films with no horror or violence. The selection is automatic, so take a quick look before playing a film for little ones.",
+ about_p1:"Cinemood gathers films you can watch freely and legally: independent films, animation and open movies released since 2000 under free licenses, plus an Archive of classics from before 2000, mostly in the public domain.",
+ p3d:"Every film links to its source and license on Internet Archive."});
+Object.assign(D.fr,{archive:"Archives",archive_intro:"Le cinéma d'avant 2000 : films muets, films noirs, séries B et dessins animés de l'âge d'or, majoritairement dans le domaine public.",films_intro:"Films indépendants, animation et open movies sortis depuis 2000 sous licence libre.",decade_all:"Toutes les décennies",decade:"Années {d}",row_archive:"Archives · avant 2000",free_lic:"Licence libre",
+ hero_intro:"Films indépendants, animation et open movies de 2000 à aujourd'hui. Gratuits, légaux, restaurés en direct.",
+ c_m_open:"Open movies",c_m_anim:"Animation",c_m_comedy:"Comédie",c_m_thriller:"Thriller & mystère",c_m_scifi:"Science-fiction & horreur",c_m_drama:"Drame & romance",c_m_doc:"Documentaires",c_m_short:"Courts métrages",c_m_kids:"Kids",
+ m_laugh_d:"Comédies",m_mystery_d:"Thrillers & mystères",m_chills_d:"Science-fiction & horreur",m_dream_d:"Drame & romance",m_toons_d:"Animation",
+ kids_note:"Animation et films familiaux, sans horreur ni violence. La sélection est automatique : jetez un œil avant de lancer un film pour les plus petits.",
+ about_p1:"Cinemood rassemble des films à regarder librement et légalement : cinéma indépendant, animation et open movies sortis depuis 2000 sous licence libre, plus des Archives de classiques d'avant 2000, majoritairement dans le domaine public."});
+Object.assign(D.es,{archive:"Archivo",archive_intro:"El cine anterior al 2000: cine mudo, cine negro, serie B y dibujos de la edad de oro, en su mayoría de dominio público.",films_intro:"Cine independiente, animación y open movies estrenados desde el 2000 con licencia libre.",decade_all:"Todas las décadas",decade:"Años {d}",row_archive:"Del archivo · antes del 2000",free_lic:"Licencia libre",
+ hero_intro:"Cine independiente, animación y open movies del 2000 a hoy. Gratis, legal y restaurado en directo.",
+ c_m_open:"Open movies",c_m_anim:"Animación",c_m_comedy:"Comedia",c_m_thriller:"Thriller y misterio",c_m_scifi:"Ciencia ficción y terror",c_m_drama:"Drama y romance",c_m_doc:"Documentales",c_m_short:"Cortometrajes",c_m_kids:"Kids",
+ m_laugh_d:"Comedias",m_mystery_d:"Thrillers y misterio",m_chills_d:"Ciencia ficción y terror",m_dream_d:"Drama y romance",m_toons_d:"Animación",
+ kids_note:"Animación y películas familiares, sin terror ni violencia. La selección es automática: échale un vistazo antes de ponerle una película a los más pequeños.",
+ about_p1:"Cinemood reúne películas que se pueden ver libre y legalmente: cine independiente, animación y open movies estrenados desde el 2000 con licencia libre, además de un Archivo de clásicos anteriores al 2000, en su mayoría de dominio público."});
+const LOC={en:"en-US",fr:"fr-FR",es:"es-ES"};
+let lang=store.get("lang",null)||(/^fr/i.test(navigator.language)?"fr":/^es/i.test(navigator.language)?"es":"en");
+const t=(k,v)=>{let s=(D[lang]&&D[lang][k])??D.en[k]??k; if(v)for(const x in v)s=s.split("{"+x+"}").join(v[x]); return s};
+const tn=(k,n,v={})=>t(n===1?k+"_one":k+"_other",{n:num(n),...v});
+const num=n=>Number(n||0).toLocaleString(LOC[lang]);
 
 const I={
  play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.4-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg>',
@@ -358,58 +499,98 @@ const I={
  full:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
  vol:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>',
  mute:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z" fill="currentColor"/><path d="m16 9.5 5 5M21 9.5l-5 5"/></svg>',
- ext:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>'
+ ext:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
+ search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+ home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5V20h-5v-6H9v6H4z"/></svg>',
+ film:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 8h16M4 16h16M9 3v18M15 3v18"/></svg>',
+ star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
+ archive:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M10 13h4"/></svg>',
+ bookmark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>',
+ smile:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 14.5q4 3.5 8 0M9 9.5v.5M15 9.5v.5"/></svg>',
+ eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+ ghost:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11a7 7 0 0 1 14 0v9l-2.3-1.6L14.4 20 12 18.4 9.6 20l-2.3-1.6z"/><path d="M9.5 11v.5M14.5 11v.5"/></svg>',
+ moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
+ heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/></svg>',
+ spark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg>'
 };
+const markSVG=`<svg class="mark" viewBox="0 0 38 26" aria-hidden="true"><circle class="eye" cx="10" cy="10" r="7" fill="none" stroke="url(#cmGrad)" stroke-width="4"/><circle class="eye" cx="28" cy="10" r="7" fill="none" stroke="url(#cmGrad)" stroke-width="4"/><path class="smile" d="M11 21.5q8 4.5 16 0" fill="none" stroke="url(#cmGrad)" stroke-width="3" stroke-linecap="round"/></svg>`;
+const wordmark=`${markSVG}<span>cinem<span class="oo">oo</span>d</span>`;
 
 /* ---------- Internet Archive ---------- */
 const IA="https://archive.org";
-const COLLS=[
- {id:"kids",name:"Kids",q:`(collection:classic_cartoons OR (collection:(feature_films OR silent_films OR Comedy_Films) AND subject:(children OR kids OR family OR "fairy tale" OR "children's film" OR enfants))) AND NOT subject:(horror OR war OR propaganda OR "censored eleven" OR adult OR violence OR crime OR murder)`},
- {id:"feature_films",name:"Longs métrages"},
- {id:"Film_Noir",name:"Film noir"},
- {id:"SciFi_Horror",name:"Science-fiction & horreur"},
- {id:"Comedy_Films",name:"Comédies"},
- {id:"silent_films",name:"Cinéma muet"},
- {id:"classic_cartoons",name:"Dessins animés classiques"}
+/* Deux époques : « modern » (2000 → aujourd'hui, licences libres uniquement) et « archive » (avant 2000, collections domaine public) */
+const Y=new Date().getFullYear();
+const KIDS_NOT=`NOT subject:(horror OR gore OR violence OR adult OR war OR propaganda OR "censored eleven" OR crime OR murder OR nsfw OR mature)`;
+const MB=`(year:[2000 TO ${Y}] AND licenseurl:(*creativecommons* OR *publicdomain*) AND NOT subject:(trailer OR gameplay OR "let's play" OR vlog OR podcast OR news OR livestream))`;
+const OLD_COLLS="feature_films OR Film_Noir OR SciFi_Horror OR Comedy_Films OR silent_films OR classic_cartoons";
+const OB=`(collection:(${OLD_COLLS}) AND NOT year:[2000 TO 2100])`;
+const CATS={
+ modern:[
+  {id:"m_open",q:`subject:(blender OR "open movie")`},
+  {id:"m_anim",q:`subject:(animation OR animated OR cartoon)`},
+  {id:"m_comedy",q:`subject:(comedy OR humor OR humour OR funny)`},
+  {id:"m_thriller",q:`subject:(thriller OR mystery OR suspense OR noir)`},
+  {id:"m_scifi",q:`subject:(horror OR "science fiction" OR scifi OR "sci-fi")`},
+  {id:"m_drama",q:`subject:(drama OR romance)`},
+  {id:"m_doc",q:`subject:(documentary OR documentaire)`},
+  {id:"m_short",q:`subject:("short film" OR "court métrage" OR cortometraje)`},
+  {id:"m_kids",q:`subject:(animation OR animated OR children OR kids OR family OR cartoon) AND ${KIDS_NOT}`,noRow:true}
+ ],
+ archive:[
+  {id:"feature_films",q:"collection:feature_films"},{id:"Film_Noir",q:"collection:Film_Noir"},{id:"SciFi_Horror",q:"collection:SciFi_Horror"},
+  {id:"Comedy_Films",q:"collection:Comedy_Films"},{id:"silent_films",q:"collection:silent_films"},{id:"classic_cartoons",q:"collection:classic_cartoons"},
+  {id:"kids",q:`(collection:classic_cartoons OR (collection:(feature_films OR silent_films OR Comedy_Films) AND subject:(children OR kids OR family OR "fairy tale" OR "children's film"))) AND ${KIDS_NOT}`}
+ ]
+};
+const cname=id=>t("c_"+id);
+const catQ=(era,id)=>{const base=era==="archive"?OB:MB; const c=id&&CATS[era].find(x=>x.id===id); return c?`(${base} AND (${c.q}))`:base};
+const MOODS=[
+ {id:"laugh",cat:"m_comedy",icon:"smile",tint:"linear-gradient(135deg,#ffd36b,#ff8a5c)"},
+ {id:"mystery",cat:"m_thriller",icon:"eye",tint:"linear-gradient(135deg,#6b7bff,#20223a)"},
+ {id:"chills",cat:"m_scifi",icon:"ghost",tint:"linear-gradient(135deg,#3cf2b0,#1a3b5c)"},
+ {id:"dream",cat:"m_drama",icon:"moon",tint:"linear-gradient(135deg,#c9b8ff,#5b4a8a)"},
+ {id:"family",cat:"m_kids",icon:"heart",tint:"linear-gradient(135deg,#ff9ec4,#ff7a6b)"},
+ {id:"toons",cat:"m_anim",icon:"spark",tint:"linear-gradient(135deg,#ffe36b,#ff5c8a)"}
 ];
-const ALL=`collection:(${COLLS.filter(c=>!c.q).map(c=>c.id).join(" OR ")})`;
-const collQ=c=>{const o=COLLS.find(x=>x.id===c); return o&&o.q?`(${o.q})`:`collection:${c}`};
-const films={}; // cache par identifiant
+const films={};
 function norm(d){
   const id=d.identifier; const prev=films[id]||{};
   let y=d.year||(d.date?String(d.date).slice(0,4):""); if(Array.isArray(y))y=y[0];
-  const f={...prev,id,title:plain(Array.isArray(d.title)?d.title[0]:d.title)||id,year:y?String(y).slice(0,4):prev.year||"",
+  return films[id]={...prev,id,title:plain(Array.isArray(d.title)?d.title[0]:d.title)||prev.title||id,year:y?String(y).slice(0,4):prev.year||"",
     desc:prev.desc||plain(d.description).slice(0,600),dl:+d.downloads||prev.dl||0,runtime:d.runtime?String(Array.isArray(d.runtime)?d.runtime[0]:d.runtime):prev.runtime||"",
     subj:prev.subj||(Array.isArray(d.subject)?d.subject:(d.subject?String(d.subject).split(/[;,]/):[])).map(s=>s.trim()).filter(Boolean).slice(0,4),
-    coll:prev.coll||d._coll||""};
-  return films[id]=f;
+    era:prev.era||d._era||"",cat:prev.cat||d._cat||""};
 }
 const thumb=id=>`${IA}/services/img/${encodeURIComponent(id)}`;
-async function iaSearch({q="",coll="",sort="downloads desc",rows=30,page=1,signal}={}){
-  let query=`mediatype:movies AND ${coll?collQ(coll):ALL}`;
+async function iaSearch({q="",era="modern",cat="",decade=0,any=false,sort="downloads desc",rows=30,page=1,signal}={}){
+  let query=`mediatype:movies AND ${any?`(${MB} OR ${OB})`:catQ(era,cat)}`;
+  if(decade)query+=` AND year:[${decade} TO ${decade+9}]`;
   if(q){const clean=q.replace(/[^\p{L}\p{N}\s'-]/gu," ").trim(); if(clean)query+=` AND (title:(${clean}) OR subject:(${clean}) OR creator:(${clean}))`}
   const p=new URLSearchParams({q:query,rows:String(rows),page:String(page),output:"json"});
   ["identifier","title","year","date","downloads","subject","description","runtime"].forEach(f=>p.append("fl[]",f)); p.append("sort[]",sort);
   const r=await fetch(`${IA}/advancedsearch.php?${p}`,{signal}); if(!r.ok)throw new Error("HTTP "+r.status);
-  const j=await r.json(); return {total:j.response.numFound,items:j.response.docs.map(d=>norm({...d,_coll:coll}))};
+  const j=await r.json(); return {total:j.response.numFound,items:j.response.docs.map(d=>{const y=parseInt(d.year||String(d.date||"").slice(0,4)); return norm({...d,_era:any?(y>=2000?"modern":"archive"):era,_cat:any?"":cat})})};
 }
 const metaCache={};
+const encPath=s=>s.split("/").map(encodeURIComponent).join("/");
 async function iaMeta(id){
   if(metaCache[id])return metaCache[id];
   const r=await fetch(`${IA}/metadata/${encodeURIComponent(id)}`); if(!r.ok)throw new Error("HTTP "+r.status);
   const j=await r.json(); const m=j.metadata||{}; const files=j.files||[];
   const pref=[f=>/h\.264/i.test(f.format)&&!/hd|1080|720/i.test(f.format)&&/\.mp4$/i.test(f.name),f=>/\.mp4$/i.test(f.name)&&/512kb/i.test(f.name),f=>/\.mp4$/i.test(f.name),f=>/\.webm$/i.test(f.name),f=>/\.ogv$/i.test(f.name),f=>/\.m4v$/i.test(f.name)];
   let file=null; for(const p of pref){file=files.find(p); if(file)break}
-  const src=file?`${IA}/download/${encodeURIComponent(id)}/${file.name.split("/").map(encodeURIComponent).join("/")}`:null;
-  const direct=file&&j.d1&&j.dir?`https://${j.d1}${j.dir.split("/").map(encodeURIComponent).join("/")}/${file.name.split("/").map(encodeURIComponent).join("/")}`:null;
+  const src=file?`${IA}/download/${encodeURIComponent(id)}/${encPath(file.name)}`:null;
+  const direct=file&&j.d1&&j.dir?`https://${j.d1}${encPath(j.dir)}/${encPath(file.name)}`:null;
   const sub=files.find(f=>/\.vtt$/i.test(f.name));
   const f=films[id]||norm({identifier:id,title:m.title});
   Object.assign(f,{title:plain(Array.isArray(m.title)?m.title[0]:m.title)||f.title,desc:plain(m.description)||f.desc,year:(m.year||String(m.date||"").slice(0,4)||f.year||"").toString().slice(0,4),
     runtime:m.runtime?String(m.runtime):f.runtime,creator:plain(m.creator),lang:plain(m.language),license:m.licenseurl||"",subj:(Array.isArray(m.subject)?m.subject:(m.subject?String(m.subject).split(/[;,]/):[])).map(s=>s.trim()).filter(Boolean).slice(0,6)});
   if(file&&file.length&&!f.runtime)f.runtime=String(Math.round(+file.length/60))+" min";
-  return metaCache[id]={film:f,src,direct,sub:sub?`${IA}/download/${encodeURIComponent(id)}/${sub.name.split("/").map(encodeURIComponent).join("/")}`:null};
+  return metaCache[id]={film:f,src,direct,sub:sub?`${IA}/download/${encodeURIComponent(id)}/${encPath(sub.name)}`:null};
 }
-function rt(s){if(!s)return ""; s=String(s); let m=s.match(/^(\d+):(\d{2}):(\d{2})$/); if(m)return `${+m[1]} h ${m[2]}`; m=s.match(/^(\d+):(\d{2})$/); if(m)return `${m[1]} min`; m=s.match(/(\d+)\s*min/i); if(m){const n=+m[1]; return n>=60?`${Math.floor(n/60)} h ${String(n%60).padStart(2,"0")}`:`${n} min`} return s.length<12?s:""}
+function rt(s){if(!s)return ""; s=String(s); let h=0,m=0,k;
+  if((k=s.match(/^(\d+):(\d{2}):(\d{2})$/))){h=+k[1]; m=+k[2]} else if((k=s.match(/^(\d+):(\d{2})$/))){m=+k[1]} else if((k=s.match(/(\d+)\s*min/i))){m=+k[1]} else return "";
+  if(m>=60){h+=Math.floor(m/60); m%=60} return h?t("dur_h",{h,m:String(m).padStart(2,"0")}):t("dur_m",{m})}
 
 /* ---------- grain ---------- */
 (function(){const c=document.createElement("canvas"); c.width=c.height=140; const x=c.getContext("2d"),d=x.createImageData(140,140); for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255; d.data[i]=d.data[i+1]=d.data[i+2]=v; d.data[i+3]=255} x.putImageData(d,0,0); document.documentElement.style.setProperty("--grain",`url(${c.toDataURL()})`)})();
@@ -417,13 +598,30 @@ function rt(s){if(!s)return ""; s=String(s); let m=s.match(/^(\d+):(\d{2}):(\d{2
 /* ---------- état ---------- */
 let progress=store.get("progress",{}), mylist=store.get("list",[]), view="home";
 const settings=store.get("settings",{low:false});
-function applySettings(){document.documentElement.setAttribute("data-low-spec",settings.low?"true":"false"); $("#lowspec").setAttribute("aria-checked",String(settings.low))}
-applySettings();
+function applySettings(){document.documentElement.setAttribute("data-low-spec",settings.low?"true":"false"); const s=$("#lowspec"); if(s)s.setAttribute("aria-checked",String(settings.low))}
 Object.values(progress).forEach(p=>p.f&&norm(p.f)); mylist.forEach(f=>norm(f));
 const snap=f=>({identifier:f.id,title:f.title,year:f.year,runtime:f.runtime});
 function toast(msg){const el=document.createElement("div"); el.className="toast"; el.innerHTML=`<i>${I.check}</i>${esc(msg)}`; $("#toasts").append(el); setTimeout(()=>{el.classList.add("out"); el.addEventListener("animationend",()=>el.remove(),{once:true})},2400)}
 const inList=id=>mylist.some(f=>f.identifier===id);
-function toggleList(id){const i=mylist.findIndex(f=>f.identifier===id); if(i>-1){mylist.splice(i,1); toast("Retiré de Ma liste")} else {mylist.unshift(snap(films[id])); toast("Ajouté à Ma liste")} store.set("list",mylist); return i<0}
+function toggleList(id){const i=mylist.findIndex(f=>f.identifier===id); if(i>-1){mylist.splice(i,1); toast(t("removed"))} else {mylist.unshift(snap(films[id])); toast(t("added"))} store.set("list",mylist); return i<0}
+
+/* ---------- chrome (en-tête, menus, barre mobile) ---------- */
+function renderChrome(){
+  document.documentElement.lang=lang; $("#lang").value=lang;
+  $("#logo").innerHTML=wordmark; $("#logo").setAttribute("aria-label","Cinemood — "+t("home"));
+  $("#nav").innerHTML=[["home","home"],["films","films"],["kids","kids"],["archive","archive"],["list","list"]].map(([v,k])=>`<button data-view="${v}" aria-current="${view===v?"page":"false"}">${t(k)}</button>`).join("");
+  $("#searchpill").innerHTML=`${I.search}${t("search")}<span class="kbd">/</span>`;
+  $("#avatar").setAttribute("aria-label",t("settings"));
+  $("#menu").innerHTML=`<div class="row"><button data-about style="text-align:left">${t("about_menu")}<small>${t("about_menu_d")}</small></button></div>
+    <div class="row"><div>${t("low")}<small>${t("low_d")}</small></div><button class="switch" id="lowspec" role="switch" aria-checked="${settings.low}" aria-label="${t("low")}"></button></div>
+    <div class="row"><div>${t("clear_hist")}<small>${t("clear_hist_d")}</small></div><button class="speed" id="clearHist">${t("clear")}</button></div>`;
+  $("#msearch").innerHTML=I.search; $("#msearch").setAttribute("aria-label",t("search"));
+  $("#tabbar").innerHTML=[["home","home","home"],["films","films","film"],["kids","kids","star"],["archive","archive","archive"],["list","list","bookmark"]].map(([v,k,ic])=>v?`<button data-view="${v}" aria-current="${view===v?"page":"false"}">${I[ic]}${t(k)}</button>`:`<button data-search>${I[ic]}${t(k)}</button>`).join("");
+  $("#lowspec").onclick=()=>{settings.low=!settings.low; store.set("settings",settings); applySettings(); toast(t(settings.low?"low_on":"low_off"))};
+  $("#clearHist").onclick=()=>{progress={}; store.set("progress",progress); refreshSmall(); toast(t("hist_cleared"))};
+  applySettings();
+}
+$("#lang").addEventListener("change",e=>{lang=e.target.value; store.set("lang",lang); renderChrome(); const c=gridState&&(view==="films"||view==="archive")?gridState.cat:""; go(view,c)});
 
 /* ---------- cartes ---------- */
 const imgFail="this.closest('.art').classList.add('noimg');this.remove()";
@@ -431,41 +629,51 @@ function art(f,extra=""){const u=thumb(f.id); return `<div class="art"><img clas
 function card(f,opt={}){
   const p=progress[f.id];
   return `<button class="card" data-open="${esc(f.id)}" aria-label="${esc(f.title)}">${art(f,`<span class="t">${esc(f.title)}</span>`)}
-    ${opt.progress&&p?`<div class="pg"><i style="width:${Math.min(100,p.t/(p.d||1)*100)}%"></i></div><div class="sub">${p.d?Math.max(1,Math.round((p.d-p.t)/60))+" min restantes":"En cours"}</div>`:""}
+    ${opt.progress&&p?`<div class="pg"><i style="width:${Math.min(100,p.t/(p.d||1)*100)}%"></i></div><div class="sub">${p.d?t("min_left",{n:Math.max(1,Math.round((p.d-p.t)/60))}):t("in_progress")}</div>`:""}
     ${f.desc?`<div class="info">${esc(f.desc.slice(0,160))}</div>`:""}</button>`;
 }
 function skel(n=6){return Array.from({length:n},()=>`<div class="card skel" aria-hidden="true"><div class="art"></div></div>`).join("")}
 function rank(f,n){return `<button class="rank" data-open="${esc(f.id)}" aria-label="${n}. ${esc(f.title)}"><span class="n">${n}</span>${art(f).replace(/<span class="yr">.*?<\/span>/,"")}</button>`}
-function rowShell(key,title,more){return `<section class="section" data-row="${key}"><div class="sec-head"><h2>${esc(title)}</h2>${more?`<button data-more="${more}">Tout voir</button>`:""}</div><div class="rail-wrap"><button class="arrow l" aria-label="Précédent" disabled>${I.l}</button><div class="rail">${skel()}</div><button class="arrow r" aria-label="Suivant">${I.r}</button></div></section>`}
+function rowShell(key,title,more){return `<section class="section" data-row="${key}"><div class="sec-head"><h2>${esc(title)}</h2>${more?`<button data-more="${more}">${t("see_all")}</button>`:""}</div><div class="rail-wrap"><button class="arrow l" aria-label="‹" disabled>${I.l}</button><div class="rail">${skel()}</div><button class="arrow r" aria-label="›">${I.r}</button></div></section>`}
 function fillRow(sec,html){const r=$(".rail",sec); r.innerHTML=html; wireRail($(".rail-wrap",sec))}
 function wireRail(w){const r=$(".rail",w),L=$(".arrow.l",w),R=$(".arrow.r",w); const upd=()=>{L.disabled=r.scrollLeft<8; R.disabled=r.scrollLeft+r.clientWidth>=r.scrollWidth-8}; upd(); r.onscroll=upd; L.onclick=()=>r.scrollBy({left:-r.clientWidth*.85,behavior:"smooth"}); R.onclick=()=>r.scrollBy({left:r.clientWidth*.85,behavior:"smooth"})}
-function rowError(sec,retry){$(".rail",sec).innerHTML=`<div class="status err" style="padding:10px 0"><h3>Chargement impossible</h3><p style="margin:0">Internet Archive ne répond pas. Vérifiez votre connexion puis réessayez.</p><button class="btn ghost" style="height:40px">Réessayer</button></div>`; $(".rail button.btn",sec).onclick=retry}
+function rowError(sec,retry){$(".rail",sec).innerHTML=`<div class="status" style="padding:10px 0"><h3 style="color:var(--err)">${t("load_fail")}</h3><p style="margin:0">${t("load_fail_d")}</p><button class="btn ghost" style="height:40px">${t("retry")}</button></div>`; $(".rail button.btn",sec).onclick=retry}
 
 /* ---------- accueil ---------- */
 let heroList=[], hi=0, heroTimer=null; const HERO_MS=9000;
+function footer(){return `<footer class="foot">
+  <div class="brand"><span class="logo" style="font-size:22px">${wordmark}</span><p>${t("tagline")} ${t("foot_free")}</p></div>
+  <nav aria-label="${t("explore_h")}"><b>${t("explore_h")}</b><button data-view="films">${t("films")}</button><button data-view="kids">${t("kids")}</button><button data-view="archive">${t("archive")}</button><button data-more="a:Film_Noir">${cname("Film_Noir")}</button><button data-more="a:silent_films">${cname("silent_films")}</button></nav>
+  <nav aria-label="Cinemood"><b>${t("brand_h")}</b><button data-about>${t("about_eyebrow")}</button><button data-view="list">${t("list")}</button><button data-search>${t("search")}</button></nav>
+  <small>${t("foot_note",{ia:`<a href="https://archive.org/details/moviesandfilms" target="_blank" rel="noopener">Internet Archive</a>`,y:new Date().getFullYear()})}</small></footer>`}
 function renderHome(){
   $("#app").innerHTML=`<section class="hero" id="hero"><div class="bg" id="heroBg"></div><div class="grain"></div>
-    <div class="hero-in"><div class="hero-txt" id="heroTxt"><div class="eyebrow"><b>Domaine public</b><span>Chargement du catalogue…</span></div><h1 style="opacity:.25">Lumen</h1><p>Des milliers de films libres, du cinéma muet aux séries B de science-fiction.</p></div><div class="frame" id="heroFrame" hidden></div></div>
+    <div class="hero-in"><div class="hero-txt" id="heroTxt"><div class="eyebrow"><b>${t("free_lic")}</b><span>2000 – ${Y}</span></div><h1>${t("tagline")}</h1><p>${t("hero_intro")}</p></div><div class="frame" id="heroFrame" hidden></div></div>
     <div class="dots" id="dots"></div></section>
     <main class="view-in" id="rows">
-      ${Object.keys(progress).length?rowShell("resume","Reprendre"):""}
-      ${rowShell("top","Top 10 des plus regardés")}
-      ${mylist.length?rowShell("list","Ma liste","list"):""}
-      ${COLLS.map(c=>rowShell(c.id,c.name,c.id)).join("")}
-    </main>
-    <footer class="foot">Films issus des collections publiques d'<a href="https://archive.org/details/moviesandfilms" target="_blank" rel="noopener">Internet Archive</a>, majoritairement dans le domaine public. Le statut de chaque film est indiqué sur sa page d'origine.</footer>`;
-  wireRail($$(".rail-wrap")[0]);
+      <section class="moods"><h2>${t("mood_title")}</h2><div class="mood-grid">${MOODS.map(m=>`<button class="mood" style="--tint:${m.tint}" data-mood="${m.cat}">${I[m.icon]}<b>${t("m_"+m.id)}</b><span>${t("m_"+m.id+"_d")}</span></button>`).join("")}</div></section>
+      ${Object.keys(progress).length?rowShell("resume",t("row_resume")):""}
+      ${rowShell("top",t("row_top"))}
+      ${mylist.length?rowShell("list",t("list"),"list"):""}
+      ${CATS.modern.filter(c=>!c.noRow).slice(0,4).map(c=>rowShell(c.id,cname(c.id),c.id)).join("")}
+      <div class="archive-band"><div><span class="eyebrow"><b>${t("archive")}</b><span>1890 – 1999</span></span><h2>${t("row_archive")}</h2><p>${t("archive_intro")}</p></div><button class="btn play" data-view="archive">${I.archive}${t("archive")}</button></div>
+      ${rowShell("archive",t("row_archive"),"archive")}
+      ${CATS.modern.filter(c=>!c.noRow).slice(4).map(c=>rowShell(c.id,cname(c.id),c.id)).join("")}
+    </main>${footer()}`;
   const resume=$('[data-row="resume"]'); if(resume)fillRow(resume,Object.values(progress).sort((a,b)=>b.at-a.at).map(p=>card(films[p.f.identifier],{progress:true})).join(""));
   const ml=$('[data-row="list"]'); if(ml)fillRow(ml,mylist.map(f=>card(films[f.identifier])).join(""));
-  const loadTop=()=>iaSearch({coll:"feature_films",rows:24}).then(({items})=>{
-    const top=items.slice(0,10); const s=$('[data-row="top"]'); if(s)fillRow(s,top.map((f,i)=>rank(f,i+1)).join(""));
+  $$(".rail-wrap").forEach(wireRail);
+  const loadArch=()=>iaSearch({era:"archive",rows:20}).then(({items})=>{const s=$('[data-row="archive"]'); if(s)fillRow(s,items.map(f=>card(f)).join(""))}).catch(()=>{const s=$('[data-row="archive"]'); if(s)rowError(s,loadArch)});
+  setTimeout(loadArch,300);
+  const loadTop=()=>iaSearch({rows:24}).then(({items})=>{
+    const s=$('[data-row="top"]'); if(s)fillRow(s,items.slice(0,10).map((f,i)=>rank(f,i+1)).join(""));
     heroList=items.slice(10,15).length?items.slice(10,15):items.slice(0,5); startHero();
-  }).catch(()=>{const s=$('[data-row="top"]'); if(s)rowError(s,loadTop); $("#heroTxt .eyebrow span").textContent="Catalogue indisponible"});
+  }).catch(()=>{const s=$('[data-row="top"]'); if(s)rowError(s,loadTop); const e=$("#heroTxt .eyebrow span"); if(e)e.textContent=t("cat_unavail")});
   loadTop();
-  COLLS.forEach((c,i)=>{const go=()=>iaSearch({coll:c.id,rows:20,page:1+(c.id==="feature_films"?1:0)}).then(({items})=>{const s=$(`[data-row="${c.id}"]`); if(s)fillRow(s,items.map(f=>card(f)).join(""))}).catch(()=>{const s=$(`[data-row="${c.id}"]`); if(s)rowError(s,go)}); setTimeout(go,i*120)});
+  CATS.modern.filter(c=>!c.noRow).forEach((c,i)=>{const go_=()=>iaSearch({cat:c.id,rows:20}).then(({items})=>{const s=$(`[data-row="${c.id}"]`); if(s)fillRow(s,items.map(f=>card(f)).join(""))}).catch(()=>{const s=$(`[data-row="${c.id}"]`); if(s)rowError(s,go_)}); setTimeout(go_,i*120)});
 }
 function startHero(){
-  $("#dots").innerHTML=heroList.map((f,i)=>`<button aria-label="${esc(f.title)}" data-i="${i}"></button>`).join("");
+  const d=$("#dots"); if(!d)return; d.innerHTML=heroList.map((f,i)=>`<button aria-label="${esc(f.title)}" data-i="${i}"></button>`).join("");
   heroList.forEach(f=>{const im=new Image(); im.src=thumb(f.id)}); setHero(0);
 }
 function setHero(i){
@@ -475,11 +683,11 @@ function setHero(i){
   const fr=$("#heroFrame"); fr.hidden=false; fr.className="frame swap"; void fr.offsetWidth; fr.innerHTML=`<img src="${thumb(f.id)}" alt=""><div class="grain"></div>`;
   const p=progress[f.id];
   $("#heroTxt").innerHTML=`<div class="swap" style="display:grid;gap:18px">
-    <div class="eyebrow"><b>Domaine public</b><span>Les plus regardés</span></div>
+    <div class="eyebrow"><b>${t("free_lic")}</b><span>${t("most_watched")}</span></div>
     <h1>${esc(f.title)}</h1>
-    <div class="meta">${f.year?`<span>${esc(f.year)}</span>`:""}${rt(f.runtime)?`<span>${esc(rt(f.runtime))}</span>`:""}<span class="pill">VO</span><span class="mono">${f.dl.toLocaleString("fr-FR")} visionnages</span></div>
+    <div class="meta">${f.year?`<span>${esc(f.year)}</span>`:""}${rt(f.runtime)?`<span>${esc(rt(f.runtime))}</span>`:""}<span class="pill">${t("vo")}</span><span class="mono">${t("views",{n:num(f.dl)})}</span></div>
     ${f.desc?`<p>${esc(f.desc)}</p>`:""}
-    <div class="actions"><button class="btn play" data-play="${esc(f.id)}">${I.play}${p?"Reprendre":"Lecture"}</button><button class="btn ghost" data-open="${esc(f.id)}">${I.info}Plus d'infos</button></div></div>`;
+    <div class="actions"><button class="btn play" data-play="${esc(f.id)}">${I.play}${t(p?"resume":"play")}</button><button class="btn ghost" data-open="${esc(f.id)}">${I.info}${t("more_info")}</button></div></div>`;
   $$("#dots button").forEach((b,j)=>{b.classList.remove("on"); void b.offsetWidth; if(j===hi){b.classList.add("on"); b.style.setProperty("--dur",HERO_MS+"ms")}});
   clearTimeout(heroTimer); heroTimer=setTimeout(()=>{if(view==="home"&&!document.hidden)setHero(hi+1)},HERO_MS);
 }
@@ -487,32 +695,39 @@ document.addEventListener("mouseover",e=>{const hero=$("#hero"); if(!hero||!hero
   if(over&&!hero.classList.contains("paused")){hero.classList.add("paused"); clearTimeout(heroTimer)} else if(!over&&hero.classList.contains("paused")){hero.classList.remove("paused"); heroTimer=setTimeout(()=>setHero(hi+1),3500)}});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&view==="home"&&heroList.length){clearTimeout(heroTimer); heroTimer=setTimeout(()=>setHero(hi+1),HERO_MS)}});
 
-/* ---------- grille (tous les films / collection / ma liste) ---------- */
+/* ---------- grilles ---------- */
 let gridState=null, io=null;
 function renderGrid(kind,coll=""){
   if(io)io.disconnect();
   if(kind==="list"){
-    $("#app").innerHTML=`<div class="view-in"><div class="page-head"><h1>Ma liste</h1></div>${mylist.length?`<div class="grid">${mylist.map(f=>card(films[f.identifier])).join("")}</div>`:`<div class="status"><h3>Votre liste est vide</h3><p style="margin:0">Ajoutez un film avec le bouton + sur sa fiche, il apparaîtra ici.</p><button class="btn ghost" data-view="films">Parcourir les films</button></div>`}</div>`; return;
+    $("#app").innerHTML=`<div class="view-in"><div class="page-head"><h1>${t("list")}</h1></div>${mylist.length?`<div class="grid">${mylist.map(f=>card(films[f.identifier])).join("")}</div>`:`<div class="status"><h3>${t("list_empty")}</h3><p style="margin:0">${t("list_empty_d")}</p><button class="btn ghost" data-view="films">${t("browse")}</button></div>`}</div>${footer()}`; return;
   }
-  const sorts=[["downloads desc","Populaires"],["year asc","Plus anciens"],["year desc","Plus récents"],["titleSorter asc","A → Z"]];
-  gridState={coll,sort:gridState&&gridState.coll===coll?gridState.sort:"downloads desc",page:0,done:false,loading:false,total:0};
-  const name=coll?COLLS.find(c=>c.id===coll).name:"Tous les films";
-  $("#app").innerHTML=`<div class="view-in"><div class="page-head"><h1>${esc(name)}</h1>${coll==="kids"?`<p>Dessins animés classiques et films familiaux, sans horreur ni guerre. La sélection est automatique : jetez un œil avant de lancer un film pour les plus petits, certains dessins animés anciens contiennent des clichés de leur époque.</p>`:""}<p id="count">Chargement…</p>
-    <div class="chips"><button class="chip" data-coll="" aria-pressed="${!coll}">Tout</button>${COLLS.map(c=>`<button class="chip" data-coll="${c.id}" aria-pressed="${coll===c.id}">${esc(c.name)}</button>`).join("")}</div>
-    <div class="chips">${sorts.map(([v,l])=>`<button class="chip" data-sort="${v}" aria-pressed="${gridState.sort===v}">${l}</button>`).join("")}</div></div>
-    <div class="grid" id="grid"></div><div class="status" id="more"><div class="spin"></div></div></div>`;
+  const era=kind==="archive"?"archive":"modern", cat=coll;
+  const sorts=[["downloads desc","sort_pop"],["year asc","sort_old"],["year desc","sort_new"],["titleSorter asc","sort_az"]];
+  const keep=gridState&&gridState.era===era&&gridState.cat===cat;
+  gridState={era,cat,coll:cat,decade:keep?gridState.decade:(gridState&&gridState.era===era?gridState.decade:0),sort:keep?gridState.sort:"downloads desc",page:0,done:false,loading:false,total:0};
+  const g0=gridState;
+  const name=cat?cname(cat):t(era==="archive"?"archive":"films");
+  const intro=cat==="m_kids"||cat==="kids"?t("kids_note"):(!cat?t(era==="archive"?"archive_intro":"films_intro"):"");
+  const decades=[];for(let d=1990;d>=1890;d-=10)decades.push(d);
+  $("#app").innerHTML=`<div class="view-in"><div class="page-head">${era==="archive"?`<span class="eyebrow"><b>${t("archive")}</b><span>1890 – 1999</span></span>`:`<span class="eyebrow"><b>${t("free_lic")}</b><span>2000 – ${Y}</span></span>`}<h1>${esc(name)}</h1>${intro?`<p>${intro}</p>`:""}<p id="count">${t("loading_cat")}</p>
+    <div class="chips"><button class="chip" data-coll="" aria-pressed="${!cat}">${t("chip_all")}</button>${CATS[era].map(c=>`<button class="chip" data-coll="${c.id}" aria-pressed="${cat===c.id}">${esc(cname(c.id))}</button>`).join("")}</div>
+    ${era==="archive"?`<div class="decades"><button class="chip" data-decade="0" aria-pressed="${!g0.decade}">${t("decade_all")}</button>${decades.map(d=>`<button class="chip" data-decade="${d}" aria-pressed="${g0.decade===d}">${t("decade",{d})}</button>`).join("")}</div>`:""}
+    <div class="chips">${sorts.map(([v,k])=>`<button class="chip" data-sort="${v}" aria-pressed="${g0.sort===v}">${t(k)}</button>`).join("")}</div></div>
+    <div class="grid" id="grid"></div><div class="status" id="more"><div class="spin"></div></div></div>${footer()}`;
   const loadMore=async()=>{const g=gridState; if(g.loading||g.done)return; g.loading=true; g.page++; const sk=document.createElement("div"); sk.style.display="contents"; sk.innerHTML=skel(6); $("#grid").append(sk);
-    try{const {total,items}=await iaSearch({coll:g.coll,sort:g.sort,rows:36,page:g.page}); if(g!==gridState)return; sk.remove(); g.total=total;
-      $("#count").textContent=`${total.toLocaleString("fr-FR")} films disponibles`; $("#grid").insertAdjacentHTML("beforeend",items.map(f=>card(f)).join(""));
-      if(g.page*36>=total||!items.length){g.done=true; $("#more").innerHTML=total?`<p style="margin:0">Vous avez tout vu. ${total.toLocaleString("fr-FR")} films.</p>`:`<h3>Aucun film ici</h3>`}}
-    catch(e){if(g!==gridState)return; sk.remove(); g.page--; $("#more").innerHTML=`<h3 style="color:var(--err)">Chargement impossible</h3><p style="margin:0">Internet Archive ne répond pas pour le moment.</p><button class="btn ghost" id="retry" style="height:40px">Réessayer</button>`; $("#retry").onclick=()=>{$("#more").innerHTML='<div class="spin"></div>'; loadMore()}}
+    try{const {total,items}=await iaSearch({era:g.era,cat:g.cat,decade:g.decade,sort:g.sort,rows:36,page:g.page}); if(g!==gridState)return; sk.remove(); g.total=total;
+      $("#count").textContent=t("films_avail",{n:num(total)}); $("#grid").insertAdjacentHTML("beforeend",items.map(f=>card(f)).join(""));
+      if(g.page*36>=total||!items.length){g.done=true; $("#more").innerHTML=total?`<p style="margin:0">${t("all_seen",{n:num(total)})}</p>`:`<h3>${t("none_here")}</h3>`}}
+    catch(e){if(g!==gridState)return; sk.remove(); g.page--; $("#more").innerHTML=`<h3 style="color:var(--err)">${t("load_fail")}</h3><p style="margin:0">${t("load_fail_d")}</p><button class="btn ghost" id="retry" style="height:40px">${t("retry")}</button>`; $("#retry").onclick=()=>{$("#more").innerHTML='<div class="spin"></div>'; loadMore()}}
     finally{g.loading=false}};
   io=new IntersectionObserver(es=>{if(es[0].isIntersecting)loadMore()},{rootMargin:"800px"}); io.observe($("#more")); loadMore();
 }
 function go(v,coll){
   view=v; clearTimeout(heroTimer); closeDetail(true); closeSearch();
   $$(".nav [data-view],.tabbar [data-view]").forEach(b=>b.setAttribute("aria-current",b.dataset.view===v?"page":"false"));
-  v==="home"?renderHome():v==="kids"?renderGrid("films","kids"):renderGrid(v,coll||"");
+  if(v!=="films"&&v!=="archive")gridState=null;
+  v==="home"?renderHome():v==="kids"?renderGrid("films","m_kids"):renderGrid(v,coll||"");
   window.scrollTo(0,0); onScroll();
 }
 function onScroll(){$("#top").classList.toggle("solid",scrollY>30||view!=="home")}
@@ -524,66 +739,62 @@ async function openDetail(id){
   const f=films[id]; if(!f)return; closeDetail(true); lastFocus=document.activeElement;
   const el=document.createElement("div"); el.className="scrim";
   el.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(f.title)}">
-    <button class="icon-btn close" aria-label="Fermer">${I.close}</button>
+    <button class="icon-btn close" aria-label="×">${I.close}</button>
     <div class="cover"><img class="blur" src="${thumb(id)}" alt=""><img class="fg" src="${thumb(id)}" alt="" onerror="this.remove()"><div class="grain"></div>
       <div class="cover-in"><h2>${esc(f.title)}</h2><div class="actions" style="margin:0;align-items:center">
-        <button class="btn play" data-play="${esc(id)}">${I.play}${progress[id]?"Reprendre":"Lecture"}</button>
-        <button class="round" id="mlBtn" aria-pressed="${inList(id)}" aria-label="Ma liste">${inList(id)?I.check:I.plus}</button>
-        <a class="round" href="${IA}/details/${encodeURIComponent(id)}" target="_blank" rel="noopener" aria-label="Voir sur Internet Archive" title="Voir sur Internet Archive" style="color:var(--fg)">${I.ext}</a></div></div></div>
-    <div class="sheet-body" id="sb"><div class="cols"><div style="display:grid;gap:14px"><div class="meta" id="dMeta"></div><p class="desc" id="dDesc">${esc(f.desc)}</p></div><div class="facts" id="dFacts"><div class="spin"></div></div></div>
-      <div style="display:grid;gap:12px"><h3>Dans la même veine</h3><div class="similar" id="sim">${skel(3)}</div></div></div></div>`;
+        <button class="btn play" data-play="${esc(id)}">${I.play}${t(progress[id]?"resume":"play")}</button>
+        <button class="round" id="mlBtn" aria-pressed="${inList(id)}" aria-label="${t("list")}">${inList(id)?I.check:I.plus}</button>
+        <a class="round" href="${IA}/details/${encodeURIComponent(id)}" target="_blank" rel="noopener" aria-label="${t("view_ia")}" title="${t("view_ia")}">${I.ext}</a></div></div></div>
+    <div class="sheet-body"><div class="cols"><div style="display:grid;gap:14px"><div class="meta" id="dMeta"></div><p class="desc" id="dDesc">${esc(f.desc)}</p></div><div class="facts" id="dFacts"><div class="spin"></div></div></div>
+      <div style="display:grid;gap:12px"><h3>${t("similar")}</h3><div class="similar" id="sim">${skel(3)}</div></div></div></div>`;
   document.body.append(el); document.body.classList.add("locked"); modal=el;
-  const fillMeta=x=>{$("#dMeta",el).innerHTML=`${x.year?`<span>${esc(x.year)}</span>`:""}${rt(x.runtime)?`<span>${esc(rt(x.runtime))}</span>`:""}<span class="pill">VO</span>${x.dl?`<span class="mono">${x.dl.toLocaleString("fr-FR")} visionnages</span>`:""}`};
+  const fillMeta=x=>{$("#dMeta",el).innerHTML=`${x.year?`<span>${esc(x.year)}</span>`:""}${rt(x.runtime)?`<span>${esc(rt(x.runtime))}</span>`:""}<span class="pill">${t("vo")}</span>${x.dl?`<span class="mono">${t("views",{n:num(x.dl)})}</span>`:""}`};
   fillMeta(f);
   $("#mlBtn",el).onclick=e=>{const on=toggleList(id); e.currentTarget.setAttribute("aria-pressed",on); e.currentTarget.innerHTML=on?I.check:I.plus};
   $(".close",el).onclick=()=>closeDetail(); el.addEventListener("click",e=>{if(e.target===el)closeDetail()});
   requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add("open"))); setTimeout(()=>$(".close",el).focus({preventScroll:true}),60);
-  try{const m=await iaMeta(id); if(modal!==el)return; const x=m.film; fillMeta(x); $("#dDesc",el).textContent=x.desc||"Aucune description fournie par Internet Archive.";
-    $("#dFacts",el).innerHTML=`${x.creator?`<div>Réalisation / origine : <b>${esc(x.creator)}</b></div>`:""}${x.subj.length?`<div>Thèmes : <b>${esc(x.subj.join(", "))}</b></div>`:""}${x.lang?`<div>Langue : <b>${esc(x.lang)}</b></div>`:""}
-      <div>Licence : <b>${x.license?`<a href="${esc(x.license)}" target="_blank" rel="noopener">voir la licence</a>`:"Domaine public (selon Internet Archive)"}</b></div>${m.src?"":`<div style="color:var(--err)">Aucun fichier vidéo lisible directement pour ce film.</div>`}`;
+  try{const m=await iaMeta(id); if(modal!==el)return; const x=m.film; fillMeta(x); $("#dDesc",el).textContent=x.desc||t("no_desc");
+    $("#dFacts",el).innerHTML=`${x.creator?`<div>${t("credits")} : <b>${esc(x.creator)}</b></div>`:""}${x.subj.length?`<div>${t("themes")} : <b>${esc(x.subj.join(", "))}</b></div>`:""}${x.lang?`<div>${t("lang_f")} : <b>${esc(x.lang)}</b></div>`:""}
+      <div>${t("license")} : <b>${x.license?`<a href="${esc(x.license)}" target="_blank" rel="noopener">${t("see_license")}</a>`:t("pd_ia")}</b></div>${m.src?"":`<div style="color:var(--err)">${t("no_file")}</div>`}`.replace(/ : /g,lang==="fr"?" : ":": ");
     const q=(x.subj[0]||"").replace(/[^\p{L}\p{N}\s]/gu," ").trim();
-    iaSearch({q,coll:f.coll||"",rows:7}).then(({items})=>{if(modal!==el)return; const s=items.filter(o=>o.id!==id).slice(0,6); $("#sim",el).innerHTML=s.length?s.map(o=>card(o)).join(""):'<p style="color:var(--dim);margin:0">Pas de suggestion pour ce film.</p>'}).catch(()=>{$("#sim",el).innerHTML=""});
-  }catch(e){if(modal!==el)return; $("#dFacts",el).innerHTML=`<div style="color:var(--err)">Détails indisponibles pour le moment.</div>`; $("#sim",el).innerHTML=""}
+    iaSearch({q,era:f.era||(parseInt(f.year)>=2000?"modern":"archive"),cat:f.cat||"",rows:7}).then(({items})=>{if(modal!==el)return; const s=items.filter(o=>o.id!==id).slice(0,6); $("#sim",el).innerHTML=s.length?s.map(o=>card(o)).join(""):`<p style="color:var(--dim);margin:0">${t("no_similar")}</p>`}).catch(()=>{$("#sim",el).innerHTML=""});
+  }catch(e){if(modal!==el)return; $("#dFacts",el).innerHTML=`<div style="color:var(--err)">${t("details_unavail")}</div>`; $("#sim",el).innerHTML=""}
 }
 function closeDetail(instant){if(!modal)return; const el=modal; modal=null; if(!search&&!P)document.body.classList.remove("locked"); if(instant){el.remove(); return} el.classList.remove("open"); setTimeout(()=>el.remove(),450); refreshSmall(); lastFocus&&lastFocus.focus&&lastFocus.focus({preventScroll:true})}
 function refreshSmall(){
   if(view==="list"){renderGrid("list"); return}
   if(view!=="home")return; const rows=$("#rows"); if(!rows)return;
-  const upsert=(key,title,html,more)=>{let s=$(`[data-row="${key}"]`); if(!html){s&&s.remove(); return} if(!s){rows.insertAdjacentHTML(key==="resume"?"afterbegin":"beforeend","");const tmp=document.createElement("div"); tmp.innerHTML=rowShell(key,title,more); s=tmp.firstElementChild; if(key==="resume")rows.prepend(s); else {const top=$('[data-row="top"]'); top?top.after(s):rows.prepend(s)}} fillRow(s,html)};
-  upsert("resume","Reprendre",Object.values(progress).sort((a,b)=>b.at-a.at).map(p=>card(films[p.f.identifier],{progress:true})).join(""));
-  upsert("list","Ma liste",mylist.map(f=>card(films[f.identifier])).join(""),"list");
+  const upsert=(key,title,html,more)=>{let s=$(`[data-row="${key}"]`); if(!html){s&&s.remove(); return} if(!s){const tmp=document.createElement("div"); tmp.innerHTML=rowShell(key,title,more); s=tmp.firstElementChild; const anchor=key==="resume"?$(".moods",rows):$('[data-row="top"]',rows); anchor?anchor.after(s):rows.prepend(s)} fillRow(s,html)};
+  upsert("resume",t("row_resume"),Object.values(progress).sort((a,b)=>b.at-a.at).map(p=>card(films[p.f.identifier],{progress:true})).join(""));
+  upsert("list",t("list"),mylist.map(f=>card(films[f.identifier])).join(""),"list");
 }
 
 /* ---------- recherche ---------- */
 let search=null;
 function openSearch(){
-  if(search)return; const el=document.createElement("div"); el.className="search"; el.setAttribute("role","dialog"); el.setAttribute("aria-label","Recherche");
-  el.innerHTML=`<div class="search-bar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="Titre, genre, réalisateur…" autocomplete="off" spellcheck="false"><button class="icon-btn" aria-label="Fermer la recherche">${I.close}</button></div><div class="hint" id="hint">Essayez « Nosferatu », « Chaplin », « zombie » ou « noir ». Échap pour fermer.</div><div class="grid" id="res"></div>`;
+  if(search)return; const el=document.createElement("div"); el.className="search"; el.setAttribute("role","dialog"); el.setAttribute("aria-label",t("search"));
+  el.innerHTML=`<div class="search-bar">${I.search}<input id="q" placeholder="${t("search_ph")}" autocomplete="off" spellcheck="false"><button class="icon-btn" aria-label="${t("close_search")}">${I.close}</button></div><div class="hint" id="hint">${t("search_hint")}</div><div class="grid" id="res"></div>`;
   document.body.append(el); document.body.classList.add("locked"); search=el;
-  const q=$("#q",el),res=$("#res",el),hint=$("#hint",el); let t=null,ctl=null;
-  const run=()=>{clearTimeout(t); const v=q.value.trim(); if(!v){hint.textContent="Essayez « Nosferatu », « Chaplin », « zombie » ou « noir ». Échap pour fermer."; res.innerHTML=""; return}
-    hint.innerHTML='<span class="spin" style="width:16px;height:16px"></span>Recherche…';
-    t=setTimeout(async()=>{ctl&&ctl.abort(); ctl=new AbortController();
-      try{const {total,items}=await iaSearch({q:v,rows:48,signal:ctl.signal}); if(search!==el)return;
-        hint.textContent=total?`${total.toLocaleString("fr-FR")} résultat${total>1?"s":""}${total>48?" · les 48 plus regardés":""}`:`Aucun film ne correspond à « ${v} ». Essayez un titre original en anglais ou un genre.`;
+  const q=$("#q",el),res=$("#res",el),hint=$("#hint",el); let tm=null,ctl=null;
+  const run=()=>{clearTimeout(tm); const v=q.value.trim(); if(!v){hint.textContent=t("search_hint"); res.innerHTML=""; return}
+    hint.innerHTML=`<span class="spin" style="width:16px;height:16px"></span>${t("searching")}`;
+    tm=setTimeout(async()=>{ctl&&ctl.abort(); ctl=new AbortController();
+      try{const {total,items}=await iaSearch({q:v,any:true,rows:48,signal:ctl.signal}); if(search!==el)return;
+        hint.textContent=total?tn("results",total)+(total>48?t("results_top"):""):t("no_results",{q:v});
         res.innerHTML=items.map(f=>card(f)).join("")}
-      catch(e){if(e.name!=="AbortError")hint.textContent="Recherche impossible : Internet Archive ne répond pas. Réessayez dans un instant."}},320)};
+      catch(e){if(e.name!=="AbortError")hint.textContent=t("search_err")}},320)};
   q.addEventListener("input",run); $(".search-bar .icon-btn",el).onclick=closeSearch;
   requestAnimationFrame(()=>{el.classList.add("open"); q.focus()});
 }
 function closeSearch(){if(!search)return; const el=search; search=null; if(!modal&&!P)document.body.classList.remove("locked"); el.classList.remove("open"); setTimeout(()=>el.remove(),350)}
 
-/* ---------- upscaler (WebGL : Catmull-Rom + netteté adaptative + débruitage) ---------- */
+/* ---------- restauration (WebGL : Catmull-Rom + netteté adaptative + débruitage) ---------- */
 const UP_MODES=[
- {id:"off",name:"Désactivé",hint:"Image d'origine"},
- {id:"natural",name:"Naturel",hint:"Agrandissement net, sans effet visible",sharp:.35,vib:0,den:.15},
- {id:"anim",name:"Animation",hint:"Contours nets, couleurs ravivées, moins de bruit",sharp:.75,vib:.12,den:.6},
- {id:"old",name:"Film ancien",hint:"Réduit le grain et les rayures légères",sharp:.5,vib:0,den:.9},
- {id:"max",name:"Netteté max",hint:"Détails accentués, peut faire ressortir le grain",sharp:1,vib:.03,den:0}
+ {id:"off"},{id:"natural",sharp:.35,vib:0,den:.15},{id:"anim",sharp:.75,vib:.12,den:.6},{id:"old",sharp:.5,vib:0,den:.9},{id:"max",sharp:1,vib:.03,den:0}
 ];
 function createUpscaler(video,canvas,onFail){
   const gl=canvas.getContext("webgl",{alpha:false,antialias:false,depth:false,premultipliedAlpha:false,powerPreference:"high-performance"});
-  if(!gl){onFail("L'amélioration d'image demande WebGL, indisponible sur ce navigateur."); return null}
+  if(!gl){onFail(t("webgl_no")); return null}
   const VS="attribute vec2 p;varying vec2 uv;void main(){uv=p*.5+.5;gl_Position=vec4(p,0.,1.);}";
   const FS_UP=`precision highp float;varying vec2 uv;uniform sampler2D t;uniform vec2 ts;
 void main(){vec2 sp=uv*ts;vec2 tp=floor(sp-.5)+.5;vec2 f=sp-tp;
@@ -604,19 +815,19 @@ float l=dot(col,vec3(.299,.587,.114));col=mix(vec3(l),col,1.+vib);
 gl_FragColor=vec4(clamp(col,0.,1.),1.);}`;
   const sh=(type,src)=>{const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s)); return s};
   const prog=fs=>{const p=gl.createProgram(); gl.attachShader(p,sh(gl.VERTEX_SHADER,VS)); gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs)); gl.bindAttribLocation(p,0,"p"); gl.linkProgram(p); if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p)); return p};
-  let pUp,pCas; try{pUp=prog(FS_UP); pCas=prog(FS_CAS)}catch(e){onFail("Votre carte graphique ne prend pas en charge l'amélioration d'image."); return null}
+  let pUp,pCas; try{pUp=prog(FS_UP); pCas=prog(FS_CAS)}catch(e){onFail(t("gpu_no")); return null}
   const U=(p,n)=>gl.getUniformLocation(p,n);
   const buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buf); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
-  const tex=()=>{const t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t); [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T].forEach(k=>gl.texParameteri(gl.TEXTURE_2D,k,gl.CLAMP_TO_EDGE)); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR); return t};
+  const tex=()=>{const x=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,x); [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T].forEach(k=>gl.texParameteri(gl.TEXTURE_2D,k,gl.CLAMP_TO_EDGE)); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR); return x};
   const src=tex(), mid=tex(), fbo=gl.createFramebuffer(); let fw=0,fh=0;
-  let mode=UP_MODES[1], split=-1, running=false, handle=0, dead=false;
+  let mode=UP_MODES[2], split=-1, running=false, handle=0, dead=false;
   function render(){
     if(dead||!running||video.readyState<2||!video.videoWidth)return;
     const dpr=Math.min(devicePixelRatio||1,2), cw=Math.round(canvas.clientWidth*dpr), ch=Math.round(canvas.clientHeight*dpr); if(!cw||!ch)return;
     if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw; canvas.height=ch}
     const vw=video.videoWidth, vh=video.videoHeight, s=Math.min(cw/vw,ch/vh); const w=Math.min(3840,Math.round(vw*s)), h=Math.round(w*vh/vw), x=Math.round((cw-w)/2), y=Math.round((ch-h)/2);
     gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D,src); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
-    try{gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,video)}catch(e){dead=true; onFail("Ce film refuse l'accès à ses images : l'amélioration est indisponible pour lui."); return}
+    try{gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,video)}catch(e){dead=true; onFail("cors"); return}
     if(fw!==w||fh!==h){gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,mid); gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,w,h,0,gl.RGB,gl.UNSIGNED_BYTE,null); gl.bindFramebuffer(gl.FRAMEBUFFER,fbo); gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,mid,0); fw=w; fh=h}
     gl.bindFramebuffer(gl.FRAMEBUFFER,fbo); gl.viewport(0,0,w,h); gl.useProgram(pUp); gl.uniform1i(U(pUp,"t"),1); gl.uniform2f(U(pUp,"ts"),vw,vh); gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
     gl.bindFramebuffer(gl.FRAMEBUFFER,null); gl.viewport(0,0,cw,ch); gl.clearColor(0,0,0,1); gl.clear(gl.COLOR_BUFFER_BIT); gl.viewport(x,y,w,h);
@@ -626,13 +837,12 @@ gl_FragColor=vec4(clamp(col,0.,1.),1.);}`;
   }
   const hasVFC="requestVideoFrameCallback" in HTMLVideoElement.prototype;
   const loop=()=>{if(!running)return; render(); handle=hasVFC?video.requestVideoFrameCallback(loop):requestAnimationFrame(loop)};
-  const onSeek=()=>render(); const onResize=()=>render();
+  const onSeek=()=>render();
   return {
-    setMode(m){mode=UP_MODES.find(o=>o.id===m)||mode; render()},
+    setMode(m){mode=UP_MODES.find(o=>o.id===m&&o.sharp!=null)||mode; render()},
     setSplit(v){split=v; render()},
-    start(){if(running||dead)return; running=true; video.addEventListener("seeked",onSeek); addEventListener("resize",onResize); loop()},
-    stop(){running=false; if(hasVFC&&handle)video.cancelVideoFrameCallback(handle); else cancelAnimationFrame(handle); video.removeEventListener("seeked",onSeek); removeEventListener("resize",onResize); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT)},
-    get dead(){return dead}
+    start(){if(running||dead)return; running=true; video.addEventListener("seeked",onSeek); addEventListener("resize",onSeek); loop()},
+    stop(){running=false; if(hasVFC&&handle)video.cancelVideoFrameCallback(handle); else cancelAnimationFrame(handle); video.removeEventListener("seeked",onSeek); removeEventListener("resize",onSeek); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT)}
   };
 }
 
@@ -640,33 +850,37 @@ gl_FragColor=vec4(clamp(col,0.,1.),1.);}`;
 let P=null;
 async function play(id){
   const f=films[id]; if(!f||P)return; closeSearch(); closeDetail(true);
-  const el=document.createElement("div"); el.className="player open ui"; el.setAttribute("role","dialog"); el.setAttribute("aria-label","Lecteur "+f.title);
+  const el=document.createElement("div"); el.className="player open ui"; el.setAttribute("role","dialog"); el.setAttribute("aria-label",f.title);
   el.innerHTML=`<video playsinline preload="auto"></video><canvas class="up"></canvas><div class="p-load" id="pLoad"><div class="spin"></div></div><div class="p-mid"><div class="p-flash" id="flash"></div></div>
-  <div class="p-ui"><div class="p-top"><button class="icon-btn" id="pBack" aria-label="Quitter le lecteur">${I.back}</button><div><h3>${esc(f.title)}</h3><small>${esc([f.year,rt(f.runtime)].filter(Boolean).join(" · "))}</small></div></div>
-    <div class="p-bot"><div class="scrub" id="scrub" role="slider" tabindex="0" aria-label="Position de lecture" aria-valuemin="0"><div class="tr"><div class="bf"></div><div class="fl"></div><div class="kn"></div></div><div class="tip mono">0:00</div></div>
-      <div class="p-ctrl"><button class="icon-btn" id="pPlay" aria-label="Lecture">${I.play}</button><button class="icon-btn" id="pRw" aria-label="Reculer de 10 secondes">${I.rw}</button><button class="icon-btn" id="pFf" aria-label="Avancer de 10 secondes">${I.ff}</button>
-        <div class="vol"><button class="icon-btn" id="pMute" aria-label="Couper le son">${I.vol}</button><input type="range" id="pVol" min="0" max="1" step="0.05" value="1" aria-label="Volume"></div>
-        <span class="time mono" id="pTime">0:00 / 0:00</span><span class="sp"></span><button class="hd" id="pHD" aria-haspopup="true" aria-expanded="false" aria-label="Amélioration de l'image">HD</button><button class="speed" id="pSpeed" aria-label="Vitesse de lecture">1×</button><button class="icon-btn" id="pFull" aria-label="Plein écran">${I.full}</button></div></div>
-    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="lumenSharp" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feGaussianBlur id="lsB" stdDeviation="0" result="b"/><feConvolveMatrix id="lsK" in="b" order="3" kernelMatrix="0 0 0 0 1 0 0 0 0" preserveAlpha="true" edgeMode="duplicate" result="s"/><feColorMatrix id="lsS" in="s" type="saturate" values="1"/></filter></svg>
-    <div class="hdmenu" id="hdMenu" hidden><h4>Amélioration de l'image</h4><div id="hdOpts"></div><p id="hdEng" style="margin:6px 12px 2px;font-size:12px;color:var(--dim)"></p><div class="row" id="hdCmpRow"><span>Comparer avant / après</span><button class="switch" id="hdCmp" role="switch" aria-checked="false" aria-label="Comparer avant et après"></button></div></div></div>
-  <div class="split" id="split" hidden><span class="ll">Original</span><span class="lr">Lumen HD</span><span class="knob"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6-5 6 5 6M15 6l5 6-5 6"/></svg></span></div>`;
+  <div class="p-ui"><div class="p-top"><button class="icon-btn" id="pBack" aria-label="${t("back")}">${I.back}</button><div><h3>${esc(f.title)}</h3><small>${esc([f.year,rt(f.runtime)].filter(Boolean).join(" · "))}</small></div></div>
+    <div class="p-bot"><div class="scrub" id="scrub" role="slider" tabindex="0" aria-label="${t("position")}" aria-valuemin="0"><div class="tr"><div class="bf"></div><div class="fl"></div><div class="kn"></div></div><div class="tip mono">0:00</div></div>
+      <div class="p-ctrl"><button class="icon-btn" id="pPlay" aria-label="${t("play_a")}">${I.play}</button><button class="icon-btn" id="pRw" aria-label="${t("rw")}">${I.rw}</button><button class="icon-btn" id="pFf" aria-label="${t("ff")}">${I.ff}</button>
+        <div class="vol"><button class="icon-btn" id="pMute" aria-label="${t("mute")}">${I.vol}</button><input type="range" id="pVol" min="0" max="1" step="0.05" value="1" aria-label="${t("volume")}"></div>
+        <span class="time mono" id="pTime">0:00 / 0:00</span><span class="sp"></span><button class="hd" id="pHD" aria-haspopup="true" aria-expanded="false" aria-label="${t("restore_a")}">HD</button><button class="speed" id="pSpeed" aria-label="${t("speed")}">1×</button><button class="icon-btn" id="pFull" aria-label="${t("full")}">${I.full}</button></div></div>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="cmSharp" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feGaussianBlur id="lsB" stdDeviation="0" result="b"/><feConvolveMatrix id="lsK" in="b" order="3" kernelMatrix="0 0 0 0 1 0 0 0 0" preserveAlpha="true" edgeMode="duplicate" result="s"/><feColorMatrix id="lsS" in="s" type="saturate" values="1"/></filter></svg>
+    <div class="hdmenu" id="hdMenu" hidden><h4>${t("restore")}</h4><div id="hdOpts"></div><p id="hdEng" style="margin:6px 12px 2px;font-size:12px;color:var(--dim)"></p><div class="row" id="hdCmpRow"><span>${t("compare")}</span><button class="switch" id="hdCmp" role="switch" aria-checked="false" aria-label="${t("compare")}"></button></div></div></div>
+  <div class="split" id="split" hidden><span class="ll">${t("original")}</span><span class="lr">${t("restored")}</span><span class="knob"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6-5 6 5 6M15 6l5 6-5 6"/></svg></span></div>`;
   document.body.append(el); document.body.classList.add("locked");
-  const v=$("video",el); let hideT;
+  const v=$("video",el); let hideT, saveT;
   const fmt=s=>{s=Math.max(0,Math.floor(s||0)); const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=String(s%60).padStart(2,"0"); return h?`${h}:${String(m).padStart(2,"0")}:${x}`:`${m}:${x}`};
   const persist=()=>{if(!v.duration||v.currentTime<5)return; if(v.duration-v.currentTime<30){delete progress[id]} else progress[id]={f:snap(f),t:Math.floor(v.currentTime),d:Math.floor(v.duration),at:Date.now()}; store.set("progress",progress)};
-  const close=()=>{if(!P)return; persist(); clearTimeout(hideT); if(up)up.stop(); clearInterval(saveT); v.pause(); v.removeAttribute("src"); v.load(); P=null; if(document.fullscreenElement)document.exitFullscreen().catch(()=>{}); el.classList.remove("open"); setTimeout(()=>el.remove(),400); if(!modal&&!search)document.body.classList.remove("locked"); refreshSmall()};
+  const close=()=>{if(!P)return; persist(); clearTimeout(hideT); clearInterval(saveT); if(up)up.stop(); v.pause(); v.removeAttribute("src"); v.load(); P=null; if(document.fullscreenElement)document.exitFullscreen().catch(()=>{}); el.classList.remove("open"); setTimeout(()=>el.remove(),400); if(!modal&&!search)document.body.classList.remove("locked"); refreshSmall()};
   const poke=()=>{el.classList.add("ui"); clearTimeout(hideT); hideT=setTimeout(()=>{if(!v.paused&&!$("#scrub",el).classList.contains("drag")&&$("#hdMenu",el).hidden)el.classList.remove("ui")},2600)};
-  /* amélioration d'image */
-  const cv=$("canvas.up",el), split=$("#split",el); let up=null, upMode=settings.upscale||"off", lastMode=upMode==="off"?"anim":upMode, cors=true, cmp=false, splitX=.5, srcUrl="", plainUrl="", resumeAt=0;
-  let gpu=true; // false = moteur de secours (filtre SVG, sans accès aux pixels)
-  const updHD=()=>{$("#pHD",el).classList.toggle("on",upMode!=="off"); $("#hdOpts",el).innerHTML=UP_MODES.map(o=>`<button class="hdopt" role="menuitemradio" aria-checked="${o.id===upMode}" data-up="${o.id}"><b>${o.name}</b><small>${o.hint}</small></button>`).join("");
-    const useGpu=gpu&&cors; $("#hdEng",el).textContent=useGpu?"Moteur : carte graphique (WebGL)":"Moteur compatible : ce film ne permet pas le traitement complet, un filtre plus léger est utilisé.";
-    $("#hdCmpRow",el).hidden=!useGpu; $("#hdCmp",el).setAttribute("aria-checked",String(cmp)); split.hidden=!(cmp&&useGpu&&upMode!=="off"&&up); split.style.left=splitX*100+"%"};
+  const flash=ic=>{const x=$("#flash",el); x.innerHTML=ic; x.classList.remove("go"); void x.offsetWidth; x.classList.add("go")};
+  const fail=msg=>{$("#pLoad",el).hidden=true; const m=document.createElement("div"); m.className="p-msg"; m.innerHTML=`<h3>${t("cant_play")}</h3><p style="margin:0;max-width:44ch">${esc(msg)}</p><a class="btn ghost" href="${IA}/details/${encodeURIComponent(id)}" target="_blank" rel="noopener">${I.ext}${t("open_ia")}</a>`; el.append(m); el.classList.add("ui")};
+
+  /* restauration */
+  const cv=$("canvas.up",el), split=$("#split",el); let up=null, upMode=settings.upscale||"off", lastMode=upMode==="off"?"anim":upMode, cors=true, gpu=true, cmp=false, splitX=.5, srcUrl="", plainUrl="", resumeAt=0;
+  const modeName=m=>t("r_"+m);
+  const updHD=()=>{const useGpu=gpu&&cors; $("#pHD",el).classList.toggle("on",upMode!=="off");
+    $("#hdOpts",el).innerHTML=UP_MODES.map(o=>`<button class="hdopt" role="menuitemradio" aria-checked="${o.id===upMode}" data-up="${o.id}"><b>${t("r_"+o.id)}</b><small>${t("r_"+o.id+"_d")}</small></button>`).join("");
+    $("#hdEng",el).textContent=t(useGpu?"eng_gpu":"eng_soft"); $("#hdCmpRow",el).hidden=!useGpu; $("#hdCmp",el).setAttribute("aria-checked",String(cmp));
+    split.hidden=!(cmp&&useGpu&&upMode!=="off"&&up); split.style.left=splitX*100+"%"};
   const SOFT={natural:{a:.3,s:1,b:0},anim:{a:.7,s:1.15,b:.35},old:{a:.55,s:1,b:.6},max:{a:1.1,s:1.03,b:0}};
   const softApply=()=>{const m=SOFT[upMode]; if(!m){v.style.filter=""; return} const a=m.a;
-    $("#lsK",el).setAttribute("kernelMatrix",`0 ${-a} 0 ${-a} ${1+4*a} ${-a} 0 ${-a} 0`); $("#lsS",el).setAttribute("values",String(m.s)); $("#lsB",el).setAttribute("stdDeviation",String(m.b)); v.style.filter="url(#lumenSharp)"};
-  const toSoft=()=>{gpu=false; if(up)up.stop(); up=null; el.classList.remove("upscaled"); if(upMode!=="off")softApply(); updHD()};
-  const upFail=msg=>{if(/accès à ses images/.test(msg)){toSoft(); return} toast(msg); toSoft()};
+    $("#lsK",el).setAttribute("kernelMatrix",`0 ${-a} 0 ${-a} ${1+4*a} ${-a} 0 ${-a} 0`); $("#lsS",el).setAttribute("values",String(m.s)); $("#lsB",el).setAttribute("stdDeviation",String(m.b)); v.style.filter="url(#cmSharp)"};
+  const toSoft=()=>{gpu=false; if(up)up.stop(); up=null; el.classList.remove("upscaled"); if(upMode!=="off")softApply(); else v.style.filter=""; updHD()};
+  const upFail=msg=>{if(msg!=="cors")toast(msg); toSoft()};
   const applyUp=()=>{
     if(upMode==="off"){if(up)up.stop(); el.classList.remove("upscaled"); v.style.filter=""; updHD(); return}
     if(!gpu||!cors){toSoft(); return}
@@ -675,7 +889,7 @@ async function play(id){
   };
   const setUp=m=>{upMode=m; if(m!=="off")lastMode=m; settings.upscale=m; store.set("settings",settings); if(v.readyState>=2)applyUp(); else updHD()};
   $("#pHD",el).onclick=e=>{e.stopPropagation(); const m=$("#hdMenu",el); m.hidden=!m.hidden; $("#pHD",el).setAttribute("aria-expanded",String(!m.hidden)); poke()};
-  $("#hdOpts",el).addEventListener("click",e=>{const b=e.target.closest("[data-up]"); if(b){setUp(b.dataset.up); if(b.dataset.up!=="off")toast("Image : "+UP_MODES.find(o=>o.id===b.dataset.up).name)}});
+  $("#hdOpts",el).addEventListener("click",e=>{const b=e.target.closest("[data-up]"); if(b){setUp(b.dataset.up); toast(b.dataset.up==="off"?t("restore_off_t"):t("restore_t",{m:modeName(b.dataset.up)}))}});
   $("#hdCmp",el).onclick=()=>{cmp=!cmp; if(cmp&&upMode==="off")setUp(lastMode); if(up)up.setSplit(cmp?splitX:-1); updHD()};
   el.addEventListener("click",e=>{if(!e.target.closest("#hdMenu,#pHD")){$("#hdMenu",el).hidden=true; $("#pHD",el).setAttribute("aria-expanded","false")}});
   split.addEventListener("pointerdown",e=>{e.stopPropagation(); split.setPointerCapture(e.pointerId);
@@ -683,60 +897,88 @@ async function play(id){
     const upH=()=>{split.removeEventListener("pointermove",mv); split.removeEventListener("pointerup",upH)}; split.addEventListener("pointermove",mv); split.addEventListener("pointerup",upH)});
   v.addEventListener("loadeddata",()=>{if(upMode!=="off")applyUp()});
   updHD();
-  const flash=ic=>{const x=$("#flash",el); x.innerHTML=ic; x.classList.remove("go"); void x.offsetWidth; x.classList.add("go")};
-  const fail=msg=>{$("#pLoad",el).hidden=true; const m=document.createElement("div"); m.className="p-msg"; m.innerHTML=`<h3>Lecture impossible</h3><p style="margin:0;max-width:44ch">${esc(msg)}</p><a class="btn ghost" href="${IA}/details/${encodeURIComponent(id)}" target="_blank" rel="noopener">${I.ext}Ouvrir sur Internet Archive</a>`; el.append(m); el.classList.add("ui")};
-  P={el,key:e=>{const k=e.key; if(k===" "||k==="k"){e.preventDefault(); toggle()} else if(k==="ArrowLeft"){e.preventDefault(); v.currentTime-=10; flash(I.rw)} else if(k==="ArrowRight"){e.preventDefault(); v.currentTime+=10; flash(I.ff)} else if(k==="ArrowUp"){e.preventDefault(); v.volume=Math.min(1,v.volume+.1)} else if(k==="ArrowDown"){e.preventDefault(); v.volume=Math.max(0,v.volume-.1)} else if(k==="m"){v.muted=!v.muted} else if(k==="h"){setUp(upMode==="off"?lastMode:"off"); toast(upMode==="off"?"Image d'origine":"Image : "+UP_MODES.find(o=>o.id===upMode).name)} else if(k==="f"){$("#pFull",el).click()} else if(k==="Escape"&&!document.fullscreenElement){close()} poke()}};
+
   const toggle=()=>{v.paused?v.play().catch(()=>{}):v.pause()};
+  P={el,key:e=>{const k=e.key; if(k===" "||k==="k"){e.preventDefault(); toggle()} else if(k==="ArrowLeft"){e.preventDefault(); v.currentTime-=10; flash(I.rw)} else if(k==="ArrowRight"){e.preventDefault(); v.currentTime+=10; flash(I.ff)} else if(k==="ArrowUp"){e.preventDefault(); v.volume=Math.min(1,v.volume+.1)} else if(k==="ArrowDown"){e.preventDefault(); v.volume=Math.max(0,v.volume-.1)} else if(k==="m"){v.muted=!v.muted} else if(k==="h"){setUp(upMode==="off"?lastMode:"off"); toast(upMode==="off"?t("restore_off_t"):t("restore_t",{m:modeName(upMode)}))} else if(k==="f"){$("#pFull",el).click()} else if(k==="Escape"&&!document.fullscreenElement){close()} poke()}};
   $("#pBack",el).onclick=close; $("#pPlay",el).onclick=toggle; v.addEventListener("click",toggle);
   $("#pRw",el).onclick=()=>{v.currentTime-=10; flash(I.rw)}; $("#pFf",el).onclick=()=>{v.currentTime+=10; flash(I.ff)};
   $("#pMute",el).onclick=()=>{v.muted=!v.muted}; $("#pVol",el).oninput=e=>{v.volume=+e.target.value; v.muted=v.volume===0};
   v.addEventListener("volumechange",()=>{$("#pMute",el).innerHTML=v.muted||v.volume===0?I.mute:I.vol; $("#pVol",el).value=v.muted?0:v.volume});
-  const speeds=[1,1.25,1.5,2,.75]; let si=0; $("#pSpeed",el).onclick=()=>{si=(si+1)%speeds.length; v.playbackRate=speeds[si]; $("#pSpeed",el).textContent=speeds[si].toString().replace(".",",")+"×"};
+  const speeds=[1,1.25,1.5,2,.75]; let si=0; $("#pSpeed",el).onclick=()=>{si=(si+1)%speeds.length; v.playbackRate=speeds[si]; $("#pSpeed",el).textContent=speeds[si].toLocaleString(LOC[lang])+"×"};
   $("#pFull",el).onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():(el.requestFullscreen?el.requestFullscreen():v.webkitEnterFullscreen&&v.webkitEnterFullscreen())}catch(e){}};
-  v.addEventListener("play",()=>{$("#pPlay",el).innerHTML=I.pause; $("#pPlay",el).setAttribute("aria-label","Pause"); flash(I.play); poke()});
-  v.addEventListener("pause",()=>{$("#pPlay",el).innerHTML=I.play; $("#pPlay",el).setAttribute("aria-label","Lecture"); flash(I.pause); el.classList.add("ui"); persist()});
+  v.addEventListener("play",()=>{$("#pPlay",el).innerHTML=I.pause; $("#pPlay",el).setAttribute("aria-label",t("pause_a")); flash(I.play); poke()});
+  v.addEventListener("pause",()=>{$("#pPlay",el).innerHTML=I.play; $("#pPlay",el).setAttribute("aria-label",t("play_a")); flash(I.pause); el.classList.add("ui"); persist()});
   v.addEventListener("waiting",()=>{$("#pLoad",el).hidden=false}); v.addEventListener("playing",()=>{$("#pLoad",el).hidden=true}); v.addEventListener("canplay",()=>{$("#pLoad",el).hidden=true});
   const ui=()=>{const d=v.duration||0,c=v.currentTime||0; const pc=d?c/d*100:0; $(".fl",el).style.width=pc+"%"; $(".kn",el).style.left=pc+"%"; let b=0; for(let i=0;i<v.buffered.length;i++)if(v.buffered.start(i)<=c)b=v.buffered.end(i); $(".bf",el).style.width=(d?b/d*100:0)+"%"; $("#pTime",el).textContent=`${fmt(c)} / ${fmt(d)}`; const sc=$("#scrub",el); sc.setAttribute("aria-valuemax",Math.floor(d)); sc.setAttribute("aria-valuenow",Math.floor(c)); sc.setAttribute("aria-valuetext",fmt(c))};
-  v.addEventListener("timeupdate",ui); v.addEventListener("progress",ui); v.addEventListener("loadedmetadata",()=>{if(resumeAt>1){v.currentTime=resumeAt; resumeAt=0; ui(); return} const p=progress[id]; if(p&&p.t<v.duration-30&&!el.dataset.resumed){el.dataset.resumed="1"; v.currentTime=p.t; toast("Reprise à "+fmt(p.t))} ui()});
-  v.addEventListener("ended",()=>{delete progress[id]; store.set("progress",progress); el.classList.add("ui"); toast("Film terminé")});
+  v.addEventListener("timeupdate",ui); v.addEventListener("progress",ui);
+  v.addEventListener("loadedmetadata",()=>{if(resumeAt>1){v.currentTime=resumeAt; resumeAt=0; ui(); return} const p=progress[id]; if(p&&p.t<v.duration-30&&!el.dataset.resumed){el.dataset.resumed="1"; v.currentTime=p.t; toast(t("resume_at",{t:fmt(p.t)}))} ui()});
+  v.addEventListener("ended",()=>{delete progress[id]; store.set("progress",progress); el.classList.add("ui"); toast(t("finished"))});
   v.addEventListener("error",()=>{if(!v.getAttribute("src"))return;
     if(v.crossOrigin&&cors){cors=false; resumeAt=v.currentTime||resumeAt; v.removeAttribute("crossorigin"); v.src=plainUrl; v.load(); v.play().catch(()=>{}); toSoft(); return}
-    fail("Le fichier vidéo de ce film n'a pas pu être chargé. Il est peut-être indisponible ou dans un format que votre navigateur ne lit pas.")});
+    fail(t("cant_file"))});
   el.addEventListener("pointermove",poke);
   const sc=$("#scrub",el),tip=$(".tip",sc); const at=e=>{const r=$(".tr",sc).getBoundingClientRect(); return Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))};
   sc.addEventListener("pointermove",e=>{const x=at(e); tip.style.left=x*100+"%"; tip.textContent=fmt(x*(v.duration||0))});
   sc.addEventListener("pointerdown",e=>{if(!v.duration)return; sc.setPointerCapture(e.pointerId); sc.classList.add("drag"); v.currentTime=at(e)*v.duration; ui();
-    const mv=e2=>{v.currentTime=at(e2)*v.duration; ui()},up=()=>{sc.classList.remove("drag"); sc.removeEventListener("pointermove",mv); sc.removeEventListener("pointerup",up); poke()}; sc.addEventListener("pointermove",mv); sc.addEventListener("pointerup",up)});
-  sc.addEventListener("keydown",e=>{if(e.key==="ArrowLeft"||e.key==="ArrowRight")e.stopPropagation()});
-  const saveT=setInterval(persist,15000);
+    const mv=e2=>{v.currentTime=at(e2)*v.duration; ui()},upH=()=>{sc.classList.remove("drag"); sc.removeEventListener("pointermove",mv); sc.removeEventListener("pointerup",upH); poke()}; sc.addEventListener("pointermove",mv); sc.addEventListener("pointerup",upH)});
+  saveT=setInterval(persist,15000);
   poke();
-  try{const m=await iaMeta(id); if(P?.el!==el)return; if(!m.src){fail("Internet Archive ne propose pas de fichier vidéo lisible directement pour ce film."); return}
+  try{const m=await iaMeta(id); if(P?.el!==el)return; if(!m.src){fail(t("cant_none")); return}
     srcUrl=m.direct||m.src; plainUrl=m.src; v.crossOrigin="anonymous"; v.src=srcUrl;
-    if(m.sub){const tr=document.createElement("track"); tr.kind="subtitles"; tr.src=m.sub; tr.srclang="und"; tr.label="Sous-titres"; v.append(tr)}
+    if(m.sub){const tr=document.createElement("track"); tr.kind="subtitles"; tr.src=m.sub; tr.srclang="und"; tr.label="Subtitles"; v.append(tr)}
     v.play().catch(()=>{$("#pLoad",el).hidden=true; el.classList.add("ui")});
-  }catch(e){if(P?.el===el)fail("Impossible de joindre Internet Archive. Vérifiez votre connexion puis réessayez.")}
+  }catch(e){if(P?.el===el)fail(t("cant_reach"))}
 }
+
+/* ---------- à propos ---------- */
+function openAbout(){
+  closeDetail(true); closeSearch(); lastFocus=document.activeElement; $("#menu").hidden=true;
+  const el=document.createElement("div"); el.className="scrim";
+  el.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-label="${t("about_menu")}"><button class="icon-btn close" aria-label="×">${I.close}</button>
+    <div class="sheet-body" style="padding-top:40px">
+      <div style="display:grid;gap:14px"><span class="eyebrow"><b>${t("about_eyebrow")}</b></span><h2>${t("about_h")}</h2></div>
+      <div class="manifesto">
+        <p>${t("about_p1")}</p>
+        <div class="pillars"><div><b class="gt">${t("p1")}</b><span>${t("p1d")}</span></div><div><b class="gt">${t("p2")}</b><span>${t("p2d")}</span></div><div><b class="gt">${t("p3")}</b><span>${t("p3d")}</span></div></div>
+        <h3>${t("about_h2")}</h3><p>${t("about_p2")}</p>
+        <h3>${t("about_h3")}</h3><p>${t("about_p3")}</p>
+      </div>
+      <div class="actions"><button class="btn play" data-view="films">${I.play}${t("explore")}</button></div>
+    </div></div>`;
+  document.body.append(el); document.body.classList.add("locked"); modal=el;
+  $(".close",el).onclick=()=>closeDetail(); el.addEventListener("click",e=>{if(e.target===el)closeDetail()});
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add("open"))); setTimeout(()=>$(".close",el).focus({preventScroll:true}),60);
+}
+
+/* ---------- écran d'ouverture ---------- */
+(function(){const s=$("#splash"); let seen=false; try{seen=sessionStorage.getItem("cinemood-splash")==="1"; sessionStorage.setItem("cinemood-splash","1")}catch(e){}
+  if(seen||matchMedia("(prefers-reduced-motion: reduce)").matches){s.remove(); return}
+  s.innerHTML=`${markSVG}<div class="word">cinem<span class="gt">oo</span>d</div><div class="tag">${t("tagline")}</div>`;
+  setTimeout(()=>{s.classList.add("gone"); setTimeout(()=>s.remove(),800)},1600)})();
 
 /* ---------- événements ---------- */
 document.addEventListener("click",e=>{
   const pl=e.target.closest("[data-play]"); if(pl){e.stopPropagation(); play(pl.dataset.play); return}
   const op=e.target.closest("[data-open]"); if(op){openDetail(op.dataset.open); return}
-  const v=e.target.closest("[data-view]"); if(v){go(v.dataset.view); return}
-  const mo=e.target.closest("[data-more]"); if(mo){const m=mo.dataset.more; m==="list"||m==="kids"?go(m):go("films",m); return}
-  const cl=e.target.closest("[data-coll]"); if(cl){gridState=null; renderGrid("films",cl.dataset.coll); return}
-  const so=e.target.closest("[data-sort]"); if(so&&gridState){const c=gridState.coll; gridState.sort=so.dataset.sort; const s=gridState.sort; renderGrid("films",c); return}
+  if(e.target.closest("[data-about]")){openAbout(); return}
+  const md=e.target.closest("[data-mood]"); if(md){md.dataset.mood==="m_kids"?go("kids"):go("films",md.dataset.mood); return}
+  const vw=e.target.closest("[data-view]"); if(vw){go(vw.dataset.view); return}
+  const mo=e.target.closest("[data-more]"); if(mo){const m=mo.dataset.more; if(m==="list"||m==="kids"||m==="archive")go(m); else if(m.startsWith("a:"))go("archive",m.slice(2)); else go("films",m); return}
+  const kindNow=()=>gridState&&gridState.era==="archive"?"archive":"films";
+  const cl=e.target.closest("[data-coll]"); if(cl&&gridState){renderGrid(kindNow(),cl.dataset.coll); return}
+  const dc=e.target.closest("[data-decade]"); if(dc&&gridState){gridState.decade=+dc.dataset.decade; renderGrid("archive",gridState.cat); return}
+  const so=e.target.closest("[data-sort]"); if(so&&gridState){gridState.sort=so.dataset.sort; renderGrid(kindNow(),gridState.cat); return}
   if(e.target.closest("[data-search]")){openSearch(); return}
   const dot=e.target.closest("#dots button"); if(dot){setHero(+dot.dataset.i); return}
   const menu=$("#menu"); if(e.target.closest("#avatar")){menu.hidden=!menu.hidden; $("#avatar").setAttribute("aria-expanded",String(!menu.hidden)); return}
   if(!e.target.closest("#menu"))menu.hidden=true;
 });
-$("#lowspec").onclick=()=>{settings.low=!settings.low; store.set("settings",settings); applySettings(); toast(settings.low?"Mode économie activé":"Effets complets réactivés")};
-$("#clearHist").onclick=()=>{progress={}; store.set("progress",progress); refreshSmall(); toast("Historique effacé")};
 document.addEventListener("keydown",e=>{
   if(P){P.key(e); return}
   if(e.key==="Escape"){if(search)closeSearch(); else if(modal)closeDetail(); else $("#menu").hidden=true; return}
   if(e.key==="/"&&!search&&!/input|select|textarea/i.test(document.activeElement.tagName)){e.preventDefault(); openSearch()}
 });
+renderChrome();
 go("home");
 })();
 </script>
