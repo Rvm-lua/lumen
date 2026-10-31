@@ -202,6 +202,27 @@ main{position:relative; z-index:2; padding-bottom:80px}
 .player.open{opacity:1}
 .player.ui{cursor:default}
 .player video{position:absolute; inset:0; width:100%; height:100%; object-fit:contain; background:#000}
+.player canvas.up{position:absolute; inset:0; width:100%; height:100%; display:block; pointer-events:none}
+.player.upscaled video{opacity:0}
+.split{position:absolute; top:0; bottom:0; width:2px; margin-left:-1px; background:var(--beam); box-shadow:0 0 14px rgba(244,196,125,.7); cursor:ew-resize; touch-action:none; z-index:3}
+.split::before{content:""; position:absolute; inset:0 -16px}
+.split .knob{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:38px; height:38px; border-radius:50%; background:var(--beam); color:var(--beam-ink); display:grid; place-items:center; box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.split .knob svg{width:20px; height:20px}
+.split .ll,.split .lr{position:absolute; top:calc(90px + env(safe-area-inset-top,0px)); font-family:var(--f-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:3px 8px; border-radius:6px; background:rgba(0,0,0,.65); white-space:nowrap}
+.split .ll{right:14px} .split .lr{left:14px; color:var(--beam)}
+.hd{height:34px; padding:0 10px; border-radius:8px; font-family:var(--f-mono); font-weight:700; font-size:12px; letter-spacing:.06em; background:rgba(255,255,255,.1); margin-right:6px; transition:background .2s,color .2s}
+.hd:hover{background:rgba(255,255,255,.2)}
+.hd.on{background:var(--beam); color:var(--beam-ink)}
+.hdmenu{position:absolute; right:var(--gut-r); bottom:calc(92px + env(safe-area-inset-bottom,0px)); width:min(300px,calc(100vw - 32px)); background:rgba(20,17,28,.96); border:1px solid var(--line); border-radius:16px; padding:8px; box-shadow:0 24px 60px rgba(0,0,0,.6); transform-origin:bottom right; animation:pop .3s var(--ease)}
+.hdmenu h4{margin:6px 12px 8px; font-family:var(--f-mono); font-size:11px; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--dim)}
+.hdopt{display:grid; gap:1px; width:100%; text-align:left; padding:9px 12px; border-radius:10px; transition:background .2s}
+.hdopt:hover{background:rgba(255,255,255,.06)}
+.hdopt small{color:var(--dim); font-size:12px}
+.hdopt[aria-checked="true"]{background:rgba(244,196,125,.13)}
+.hdopt[aria-checked="true"] b{color:var(--beam)}
+.hdmenu .row{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 12px 6px; border-top:1px solid var(--line); margin-top:6px; font-size:14px}
+.p-ui{pointer-events:none}
+.p-ui > *{pointer-events:auto}
 .p-ui{position:absolute; inset:0; display:flex; flex-direction:column; justify-content:space-between; opacity:0; transition:opacity .45s var(--out); background:linear-gradient(180deg,rgba(0,0,0,.7),rgba(0,0,0,0) 22%,rgba(0,0,0,0) 60%,rgba(0,0,0,.85))}
 .player.ui .p-ui{opacity:1}
 .p-top{display:flex; align-items:center; gap:16px; padding-top:calc(18px + env(safe-area-inset-top,0px)); padding-left:var(--gut-l); padding-right:var(--gut-r)}
@@ -547,26 +568,111 @@ function openSearch(){
 }
 function closeSearch(){if(!search)return; const el=search; search=null; if(!modal&&!P)document.body.classList.remove("locked"); el.classList.remove("open"); setTimeout(()=>el.remove(),350)}
 
+/* ---------- upscaler (WebGL : Catmull-Rom + netteté adaptative + débruitage) ---------- */
+const UP_MODES=[
+ {id:"off",name:"Désactivé",hint:"Image d'origine"},
+ {id:"natural",name:"Naturel",hint:"Agrandissement net, sans effet visible",sharp:.35,vib:0,den:.15},
+ {id:"anim",name:"Animation",hint:"Contours nets, couleurs ravivées, moins de bruit",sharp:.75,vib:.12,den:.6},
+ {id:"old",name:"Film ancien",hint:"Réduit le grain et les rayures légères",sharp:.5,vib:0,den:.9},
+ {id:"max",name:"Netteté max",hint:"Détails accentués, peut faire ressortir le grain",sharp:1,vib:.03,den:0}
+];
+function createUpscaler(video,canvas,onFail){
+  const gl=canvas.getContext("webgl",{alpha:false,antialias:false,depth:false,premultipliedAlpha:false,powerPreference:"high-performance"});
+  if(!gl){onFail("L'amélioration d'image demande WebGL, indisponible sur ce navigateur."); return null}
+  const VS="attribute vec2 p;varying vec2 uv;void main(){uv=p*.5+.5;gl_Position=vec4(p,0.,1.);}";
+  const FS_UP=`precision highp float;varying vec2 uv;uniform sampler2D t;uniform vec2 ts;
+void main(){vec2 sp=uv*ts;vec2 tp=floor(sp-.5)+.5;vec2 f=sp-tp;
+vec2 w0=f*(-.5+f*(1.-.5*f));vec2 w1=1.+f*f*(-2.5+1.5*f);vec2 w2=f*(.5+f*(2.-1.5*f));vec2 w3=f*f*(-.5+.5*f);
+vec2 w12=w1+w2;vec2 o12=w2/w12;vec2 a=(tp-1.)/ts;vec2 c=(tp+2.)/ts;vec2 m=(tp+o12)/ts;
+vec3 r=texture2D(t,vec2(a.x,a.y)).rgb*w0.x*w0.y+texture2D(t,vec2(m.x,a.y)).rgb*w12.x*w0.y+texture2D(t,vec2(c.x,a.y)).rgb*w3.x*w0.y
++texture2D(t,vec2(a.x,m.y)).rgb*w0.x*w12.y+texture2D(t,vec2(m.x,m.y)).rgb*w12.x*w12.y+texture2D(t,vec2(c.x,m.y)).rgb*w3.x*w12.y
++texture2D(t,vec2(a.x,c.y)).rgb*w0.x*w3.y+texture2D(t,vec2(m.x,c.y)).rgb*w12.x*w3.y+texture2D(t,vec2(c.x,c.y)).rgb*w3.x*w3.y;
+gl_FragColor=vec4(clamp(r,0.,1.),1.);}`;
+  const FS_CAS=`precision highp float;varying vec2 uv;uniform sampler2D t;uniform sampler2D raw;uniform vec2 px;uniform float sharp;uniform float vib;uniform float den;uniform float split;
+void main(){if(uv.x<split){gl_FragColor=vec4(texture2D(raw,uv).rgb,1.);return;}
+vec3 b=texture2D(t,uv-vec2(0.,px.y)).rgb;vec3 d=texture2D(t,uv-vec2(px.x,0.)).rgb;vec3 e=texture2D(t,uv).rgb;vec3 f=texture2D(t,uv+vec2(px.x,0.)).rgb;vec3 h=texture2D(t,uv+vec2(0.,px.y)).rgb;
+vec3 avg=(b+d+f+h)*.25;vec3 df=abs(e-avg);float flat_=1.-smoothstep(.015,.07,max(df.r,max(df.g,df.b)));e=mix(e,avg,den*flat_);
+vec3 mn=min(e,min(min(b,d),min(f,h)));vec3 mx=max(e,max(max(b,d),max(f,h)));
+vec3 amp=sqrt(clamp(min(mn,2.-mx)/max(mx,vec3(1e-4)),0.,1.));vec3 w=amp*(-1./mix(8.,5.,sharp));
+vec3 col=(b*w+d*w+f*w+h*w+e)/(1.+4.*w);
+float l=dot(col,vec3(.299,.587,.114));col=mix(vec3(l),col,1.+vib);
+gl_FragColor=vec4(clamp(col,0.,1.),1.);}`;
+  const sh=(type,src)=>{const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s)); return s};
+  const prog=fs=>{const p=gl.createProgram(); gl.attachShader(p,sh(gl.VERTEX_SHADER,VS)); gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs)); gl.bindAttribLocation(p,0,"p"); gl.linkProgram(p); if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p)); return p};
+  let pUp,pCas; try{pUp=prog(FS_UP); pCas=prog(FS_CAS)}catch(e){onFail("Votre carte graphique ne prend pas en charge l'amélioration d'image."); return null}
+  const U=(p,n)=>gl.getUniformLocation(p,n);
+  const buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buf); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+  const tex=()=>{const t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t); [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T].forEach(k=>gl.texParameteri(gl.TEXTURE_2D,k,gl.CLAMP_TO_EDGE)); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR); return t};
+  const src=tex(), mid=tex(), fbo=gl.createFramebuffer(); let fw=0,fh=0;
+  let mode=UP_MODES[1], split=-1, running=false, handle=0, dead=false;
+  function render(){
+    if(dead||!running||video.readyState<2||!video.videoWidth)return;
+    const dpr=Math.min(devicePixelRatio||1,2), cw=Math.round(canvas.clientWidth*dpr), ch=Math.round(canvas.clientHeight*dpr); if(!cw||!ch)return;
+    if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw; canvas.height=ch}
+    const vw=video.videoWidth, vh=video.videoHeight, s=Math.min(cw/vw,ch/vh); const w=Math.min(3840,Math.round(vw*s)), h=Math.round(w*vh/vw), x=Math.round((cw-w)/2), y=Math.round((ch-h)/2);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D,src); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+    try{gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,video)}catch(e){dead=true; onFail("Ce film refuse l'accès à ses images : l'amélioration est indisponible pour lui."); return}
+    if(fw!==w||fh!==h){gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,mid); gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,w,h,0,gl.RGB,gl.UNSIGNED_BYTE,null); gl.bindFramebuffer(gl.FRAMEBUFFER,fbo); gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,mid,0); fw=w; fh=h}
+    gl.bindFramebuffer(gl.FRAMEBUFFER,fbo); gl.viewport(0,0,w,h); gl.useProgram(pUp); gl.uniform1i(U(pUp,"t"),1); gl.uniform2f(U(pUp,"ts"),vw,vh); gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    gl.bindFramebuffer(gl.FRAMEBUFFER,null); gl.viewport(0,0,cw,ch); gl.clearColor(0,0,0,1); gl.clear(gl.COLOR_BUFFER_BIT); gl.viewport(x,y,w,h);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,mid); gl.useProgram(pCas);
+    gl.uniform1i(U(pCas,"t"),0); gl.uniform1i(U(pCas,"raw"),1); gl.uniform2f(U(pCas,"px"),1/w,1/h); gl.uniform1f(U(pCas,"sharp"),mode.sharp); gl.uniform1f(U(pCas,"vib"),mode.vib); gl.uniform1f(U(pCas,"den"),mode.den);
+    gl.uniform1f(U(pCas,"split"),split<0?-1:(split*cw-x)/w); gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  }
+  const hasVFC="requestVideoFrameCallback" in HTMLVideoElement.prototype;
+  const loop=()=>{if(!running)return; render(); handle=hasVFC?video.requestVideoFrameCallback(loop):requestAnimationFrame(loop)};
+  const onSeek=()=>render(); const onResize=()=>render();
+  return {
+    setMode(m){mode=UP_MODES.find(o=>o.id===m)||mode; render()},
+    setSplit(v){split=v; render()},
+    start(){if(running||dead)return; running=true; video.addEventListener("seeked",onSeek); addEventListener("resize",onResize); loop()},
+    stop(){running=false; if(hasVFC&&handle)video.cancelVideoFrameCallback(handle); else cancelAnimationFrame(handle); video.removeEventListener("seeked",onSeek); removeEventListener("resize",onResize); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT)},
+    get dead(){return dead}
+  };
+}
+
 /* ---------- lecteur ---------- */
 let P=null;
 async function play(id){
   const f=films[id]; if(!f||P)return; closeSearch(); closeDetail(true);
   const el=document.createElement("div"); el.className="player open ui"; el.setAttribute("role","dialog"); el.setAttribute("aria-label","Lecteur "+f.title);
-  el.innerHTML=`<video playsinline preload="auto" crossorigin="anonymous"></video><div class="p-load" id="pLoad"><div class="spin"></div></div><div class="p-mid"><div class="p-flash" id="flash"></div></div>
+  el.innerHTML=`<video playsinline preload="auto"></video><canvas class="up"></canvas><div class="p-load" id="pLoad"><div class="spin"></div></div><div class="p-mid"><div class="p-flash" id="flash"></div></div>
   <div class="p-ui"><div class="p-top"><button class="icon-btn" id="pBack" aria-label="Quitter le lecteur">${I.back}</button><div><h3>${esc(f.title)}</h3><small>${esc([f.year,rt(f.runtime)].filter(Boolean).join(" · "))}</small></div></div>
     <div class="p-bot"><div class="scrub" id="scrub" role="slider" tabindex="0" aria-label="Position de lecture" aria-valuemin="0"><div class="tr"><div class="bf"></div><div class="fl"></div><div class="kn"></div></div><div class="tip mono">0:00</div></div>
       <div class="p-ctrl"><button class="icon-btn" id="pPlay" aria-label="Lecture">${I.play}</button><button class="icon-btn" id="pRw" aria-label="Reculer de 10 secondes">${I.rw}</button><button class="icon-btn" id="pFf" aria-label="Avancer de 10 secondes">${I.ff}</button>
         <div class="vol"><button class="icon-btn" id="pMute" aria-label="Couper le son">${I.vol}</button><input type="range" id="pVol" min="0" max="1" step="0.05" value="1" aria-label="Volume"></div>
-        <span class="time mono" id="pTime">0:00 / 0:00</span><span class="sp"></span><button class="speed" id="pSpeed" aria-label="Vitesse de lecture">1×</button><button class="icon-btn" id="pFull" aria-label="Plein écran">${I.full}</button></div></div></div>`;
+        <span class="time mono" id="pTime">0:00 / 0:00</span><span class="sp"></span><button class="hd" id="pHD" aria-haspopup="true" aria-expanded="false" aria-label="Amélioration de l'image">HD</button><button class="speed" id="pSpeed" aria-label="Vitesse de lecture">1×</button><button class="icon-btn" id="pFull" aria-label="Plein écran">${I.full}</button></div></div>
+    <div class="hdmenu" id="hdMenu" hidden><h4>Amélioration de l'image</h4><div id="hdOpts"></div><div class="row"><span>Comparer avant / après</span><button class="switch" id="hdCmp" role="switch" aria-checked="false" aria-label="Comparer avant et après"></button></div></div></div>
+  <div class="split" id="split" hidden><span class="ll">Original</span><span class="lr">Lumen HD</span><span class="knob"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6-5 6 5 6M15 6l5 6-5 6"/></svg></span></div>`;
   document.body.append(el); document.body.classList.add("locked");
   const v=$("video",el); let hideT;
   const fmt=s=>{s=Math.max(0,Math.floor(s||0)); const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=String(s%60).padStart(2,"0"); return h?`${h}:${String(m).padStart(2,"0")}:${x}`:`${m}:${x}`};
   const persist=()=>{if(!v.duration||v.currentTime<5)return; if(v.duration-v.currentTime<30){delete progress[id]} else progress[id]={f:snap(f),t:Math.floor(v.currentTime),d:Math.floor(v.duration),at:Date.now()}; store.set("progress",progress)};
-  const close=()=>{if(!P)return; persist(); clearTimeout(hideT); clearInterval(saveT); v.pause(); v.removeAttribute("src"); v.load(); P=null; if(document.fullscreenElement)document.exitFullscreen().catch(()=>{}); el.classList.remove("open"); setTimeout(()=>el.remove(),400); if(!modal&&!search)document.body.classList.remove("locked"); refreshSmall()};
-  const poke=()=>{el.classList.add("ui"); clearTimeout(hideT); hideT=setTimeout(()=>{if(!v.paused&&!$("#scrub",el).classList.contains("drag"))el.classList.remove("ui")},2600)};
+  const close=()=>{if(!P)return; persist(); clearTimeout(hideT); if(up)up.stop(); clearInterval(saveT); v.pause(); v.removeAttribute("src"); v.load(); P=null; if(document.fullscreenElement)document.exitFullscreen().catch(()=>{}); el.classList.remove("open"); setTimeout(()=>el.remove(),400); if(!modal&&!search)document.body.classList.remove("locked"); refreshSmall()};
+  const poke=()=>{el.classList.add("ui"); clearTimeout(hideT); hideT=setTimeout(()=>{if(!v.paused&&!$("#scrub",el).classList.contains("drag")&&$("#hdMenu",el).hidden)el.classList.remove("ui")},2600)};
+  /* amélioration d'image */
+  const cv=$("canvas.up",el), split=$("#split",el); let up=null, upMode=settings.upscale||"off", lastMode=upMode==="off"?"anim":upMode, cors=true, cmp=false, splitX=.5, srcUrl="";
+  const updHD=()=>{$("#pHD",el).classList.toggle("on",upMode!=="off"); $("#hdOpts",el).innerHTML=UP_MODES.map(o=>`<button class="hdopt" role="menuitemradio" aria-checked="${o.id===upMode}" data-up="${o.id}"><b>${o.name}</b><small>${o.hint}</small></button>`).join(""); $("#hdCmp",el).setAttribute("aria-checked",String(cmp)); split.hidden=!(cmp&&upMode!=="off"&&up); split.style.left=splitX*100+"%"};
+  const upFail=msg=>{toast(msg); if(up)up.stop(); up=null; upMode="off"; el.classList.remove("upscaled"); updHD()};
+  const applyUp=()=>{
+    if(upMode==="off"){if(up)up.stop(); el.classList.remove("upscaled"); updHD(); return}
+    if(!cors){upFail("Ce film refuse l'accès à ses images : l'amélioration est indisponible pour lui."); return}
+    if(!up)up=createUpscaler(v,cv,upFail); if(!up){upMode="off"; updHD(); return}
+    up.setMode(upMode); up.setSplit(cmp?splitX:-1); up.start(); el.classList.add("upscaled"); updHD();
+  };
+  const setUp=m=>{upMode=m; if(m!=="off")lastMode=m; settings.upscale=m; store.set("settings",settings); if(v.readyState>=2)applyUp(); else updHD()};
+  $("#pHD",el).onclick=e=>{e.stopPropagation(); const m=$("#hdMenu",el); m.hidden=!m.hidden; $("#pHD",el).setAttribute("aria-expanded",String(!m.hidden)); poke()};
+  $("#hdOpts",el).addEventListener("click",e=>{const b=e.target.closest("[data-up]"); if(b){setUp(b.dataset.up); if(b.dataset.up!=="off")toast("Image : "+UP_MODES.find(o=>o.id===b.dataset.up).name)}});
+  $("#hdCmp",el).onclick=()=>{cmp=!cmp; if(cmp&&upMode==="off")setUp(lastMode); if(up)up.setSplit(cmp?splitX:-1); updHD()};
+  el.addEventListener("click",e=>{if(!e.target.closest("#hdMenu,#pHD")){$("#hdMenu",el).hidden=true; $("#pHD",el).setAttribute("aria-expanded","false")}});
+  split.addEventListener("pointerdown",e=>{e.stopPropagation(); split.setPointerCapture(e.pointerId);
+    const mv=e2=>{splitX=Math.max(.02,Math.min(.98,e2.clientX/innerWidth)); split.style.left=splitX*100+"%"; if(up)up.setSplit(splitX)};
+    const upH=()=>{split.removeEventListener("pointermove",mv); split.removeEventListener("pointerup",upH)}; split.addEventListener("pointermove",mv); split.addEventListener("pointerup",upH)});
+  v.addEventListener("loadeddata",()=>{if(upMode!=="off")applyUp()});
+  updHD();
   const flash=ic=>{const x=$("#flash",el); x.innerHTML=ic; x.classList.remove("go"); void x.offsetWidth; x.classList.add("go")};
   const fail=msg=>{$("#pLoad",el).hidden=true; const m=document.createElement("div"); m.className="p-msg"; m.innerHTML=`<h3>Lecture impossible</h3><p style="margin:0;max-width:44ch">${esc(msg)}</p><a class="btn ghost" href="${IA}/details/${encodeURIComponent(id)}" target="_blank" rel="noopener">${I.ext}Ouvrir sur Internet Archive</a>`; el.append(m); el.classList.add("ui")};
-  P={el,key:e=>{const k=e.key; if(k===" "||k==="k"){e.preventDefault(); toggle()} else if(k==="ArrowLeft"){e.preventDefault(); v.currentTime-=10; flash(I.rw)} else if(k==="ArrowRight"){e.preventDefault(); v.currentTime+=10; flash(I.ff)} else if(k==="ArrowUp"){e.preventDefault(); v.volume=Math.min(1,v.volume+.1)} else if(k==="ArrowDown"){e.preventDefault(); v.volume=Math.max(0,v.volume-.1)} else if(k==="m"){v.muted=!v.muted} else if(k==="f"){$("#pFull",el).click()} else if(k==="Escape"&&!document.fullscreenElement){close()} poke()}};
+  P={el,key:e=>{const k=e.key; if(k===" "||k==="k"){e.preventDefault(); toggle()} else if(k==="ArrowLeft"){e.preventDefault(); v.currentTime-=10; flash(I.rw)} else if(k==="ArrowRight"){e.preventDefault(); v.currentTime+=10; flash(I.ff)} else if(k==="ArrowUp"){e.preventDefault(); v.volume=Math.min(1,v.volume+.1)} else if(k==="ArrowDown"){e.preventDefault(); v.volume=Math.max(0,v.volume-.1)} else if(k==="m"){v.muted=!v.muted} else if(k==="h"){setUp(upMode==="off"?lastMode:"off"); toast(upMode==="off"?"Image d'origine":"Image : "+UP_MODES.find(o=>o.id===upMode).name)} else if(k==="f"){$("#pFull",el).click()} else if(k==="Escape"&&!document.fullscreenElement){close()} poke()}};
   const toggle=()=>{v.paused?v.play().catch(()=>{}):v.pause()};
   $("#pBack",el).onclick=close; $("#pPlay",el).onclick=toggle; v.addEventListener("click",toggle);
   $("#pRw",el).onclick=()=>{v.currentTime-=10; flash(I.rw)}; $("#pFf",el).onclick=()=>{v.currentTime+=10; flash(I.ff)};
@@ -580,7 +686,9 @@ async function play(id){
   const ui=()=>{const d=v.duration||0,c=v.currentTime||0; const pc=d?c/d*100:0; $(".fl",el).style.width=pc+"%"; $(".kn",el).style.left=pc+"%"; let b=0; for(let i=0;i<v.buffered.length;i++)if(v.buffered.start(i)<=c)b=v.buffered.end(i); $(".bf",el).style.width=(d?b/d*100:0)+"%"; $("#pTime",el).textContent=`${fmt(c)} / ${fmt(d)}`; const sc=$("#scrub",el); sc.setAttribute("aria-valuemax",Math.floor(d)); sc.setAttribute("aria-valuenow",Math.floor(c)); sc.setAttribute("aria-valuetext",fmt(c))};
   v.addEventListener("timeupdate",ui); v.addEventListener("progress",ui); v.addEventListener("loadedmetadata",()=>{const p=progress[id]; if(p&&p.t<v.duration-30){v.currentTime=p.t; toast("Reprise à "+fmt(p.t))} ui()});
   v.addEventListener("ended",()=>{delete progress[id]; store.set("progress",progress); el.classList.add("ui"); toast("Film terminé")});
-  v.addEventListener("error",()=>{if(v.getAttribute("src"))fail("Le fichier vidéo de ce film n'a pas pu être chargé. Il est peut-être indisponible ou dans un format que votre navigateur ne lit pas.")});
+  v.addEventListener("error",()=>{if(!v.getAttribute("src"))return;
+    if(v.crossOrigin&&cors){cors=false; v.removeAttribute("crossorigin"); v.src=srcUrl; v.load(); v.play().catch(()=>{}); if(upMode!=="off")upFail("Ce film refuse l'accès à ses images : l'amélioration est indisponible pour lui."); return}
+    fail("Le fichier vidéo de ce film n'a pas pu être chargé. Il est peut-être indisponible ou dans un format que votre navigateur ne lit pas.")});
   el.addEventListener("pointermove",poke);
   const sc=$("#scrub",el),tip=$(".tip",sc); const at=e=>{const r=$(".tr",sc).getBoundingClientRect(); return Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))};
   sc.addEventListener("pointermove",e=>{const x=at(e); tip.style.left=x*100+"%"; tip.textContent=fmt(x*(v.duration||0))});
@@ -590,7 +698,7 @@ async function play(id){
   const saveT=setInterval(persist,15000);
   poke();
   try{const m=await iaMeta(id); if(P?.el!==el)return; if(!m.src){fail("Internet Archive ne propose pas de fichier vidéo lisible directement pour ce film."); return}
-    v.removeAttribute("crossorigin"); v.src=m.src;
+    srcUrl=m.src; v.crossOrigin="anonymous"; v.src=m.src;
     if(m.sub){const tr=document.createElement("track"); tr.kind="subtitles"; tr.src=m.sub; tr.srclang="und"; tr.label="Sous-titres"; v.append(tr)}
     v.play().catch(()=>{$("#pLoad",el).hidden=true; el.classList.add("ui")});
   }catch(e){if(P?.el===el)fail("Impossible de joindre Internet Archive. Vérifiez votre connexion puis réessayez.")}
