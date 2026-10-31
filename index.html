@@ -397,12 +397,13 @@ async function iaMeta(id){
   const pref=[f=>/h\.264/i.test(f.format)&&!/hd|1080|720/i.test(f.format)&&/\.mp4$/i.test(f.name),f=>/\.mp4$/i.test(f.name)&&/512kb/i.test(f.name),f=>/\.mp4$/i.test(f.name),f=>/\.webm$/i.test(f.name),f=>/\.ogv$/i.test(f.name),f=>/\.m4v$/i.test(f.name)];
   let file=null; for(const p of pref){file=files.find(p); if(file)break}
   const src=file?`${IA}/download/${encodeURIComponent(id)}/${file.name.split("/").map(encodeURIComponent).join("/")}`:null;
+  const direct=file&&j.d1&&j.dir?`https://${j.d1}${j.dir.split("/").map(encodeURIComponent).join("/")}/${file.name.split("/").map(encodeURIComponent).join("/")}`:null;
   const sub=files.find(f=>/\.vtt$/i.test(f.name));
   const f=films[id]||norm({identifier:id,title:m.title});
   Object.assign(f,{title:plain(Array.isArray(m.title)?m.title[0]:m.title)||f.title,desc:plain(m.description)||f.desc,year:(m.year||String(m.date||"").slice(0,4)||f.year||"").toString().slice(0,4),
     runtime:m.runtime?String(m.runtime):f.runtime,creator:plain(m.creator),lang:plain(m.language),license:m.licenseurl||"",subj:(Array.isArray(m.subject)?m.subject:(m.subject?String(m.subject).split(/[;,]/):[])).map(s=>s.trim()).filter(Boolean).slice(0,6)});
   if(file&&file.length&&!f.runtime)f.runtime=String(Math.round(+file.length/60))+" min";
-  return metaCache[id]={film:f,src,sub:sub?`${IA}/download/${encodeURIComponent(id)}/${sub.name.split("/").map(encodeURIComponent).join("/")}`:null};
+  return metaCache[id]={film:f,src,direct,sub:sub?`${IA}/download/${encodeURIComponent(id)}/${sub.name.split("/").map(encodeURIComponent).join("/")}`:null};
 }
 function rt(s){if(!s)return ""; s=String(s); let m=s.match(/^(\d+):(\d{2}):(\d{2})$/); if(m)return `${+m[1]} h ${m[2]}`; m=s.match(/^(\d+):(\d{2})$/); if(m)return `${m[1]} min`; m=s.match(/(\d+)\s*min/i); if(m){const n=+m[1]; return n>=60?`${Math.floor(n/60)} h ${String(n%60).padStart(2,"0")}`:`${n} min`} return s.length<12?s:""}
 
@@ -642,7 +643,8 @@ async function play(id){
       <div class="p-ctrl"><button class="icon-btn" id="pPlay" aria-label="Lecture">${I.play}</button><button class="icon-btn" id="pRw" aria-label="Reculer de 10 secondes">${I.rw}</button><button class="icon-btn" id="pFf" aria-label="Avancer de 10 secondes">${I.ff}</button>
         <div class="vol"><button class="icon-btn" id="pMute" aria-label="Couper le son">${I.vol}</button><input type="range" id="pVol" min="0" max="1" step="0.05" value="1" aria-label="Volume"></div>
         <span class="time mono" id="pTime">0:00 / 0:00</span><span class="sp"></span><button class="hd" id="pHD" aria-haspopup="true" aria-expanded="false" aria-label="Amélioration de l'image">HD</button><button class="speed" id="pSpeed" aria-label="Vitesse de lecture">1×</button><button class="icon-btn" id="pFull" aria-label="Plein écran">${I.full}</button></div></div>
-    <div class="hdmenu" id="hdMenu" hidden><h4>Amélioration de l'image</h4><div id="hdOpts"></div><div class="row"><span>Comparer avant / après</span><button class="switch" id="hdCmp" role="switch" aria-checked="false" aria-label="Comparer avant et après"></button></div></div></div>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="lumenSharp" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feGaussianBlur id="lsB" stdDeviation="0" result="b"/><feConvolveMatrix id="lsK" in="b" order="3" kernelMatrix="0 0 0 0 1 0 0 0 0" preserveAlpha="true" edgeMode="duplicate" result="s"/><feColorMatrix id="lsS" in="s" type="saturate" values="1"/></filter></svg>
+    <div class="hdmenu" id="hdMenu" hidden><h4>Amélioration de l'image</h4><div id="hdOpts"></div><p id="hdEng" style="margin:6px 12px 2px;font-size:12px;color:var(--dim)"></p><div class="row" id="hdCmpRow"><span>Comparer avant / après</span><button class="switch" id="hdCmp" role="switch" aria-checked="false" aria-label="Comparer avant et après"></button></div></div></div>
   <div class="split" id="split" hidden><span class="ll">Original</span><span class="lr">Lumen HD</span><span class="knob"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6-5 6 5 6M15 6l5 6-5 6"/></svg></span></div>`;
   document.body.append(el); document.body.classList.add("locked");
   const v=$("video",el); let hideT;
@@ -651,14 +653,21 @@ async function play(id){
   const close=()=>{if(!P)return; persist(); clearTimeout(hideT); if(up)up.stop(); clearInterval(saveT); v.pause(); v.removeAttribute("src"); v.load(); P=null; if(document.fullscreenElement)document.exitFullscreen().catch(()=>{}); el.classList.remove("open"); setTimeout(()=>el.remove(),400); if(!modal&&!search)document.body.classList.remove("locked"); refreshSmall()};
   const poke=()=>{el.classList.add("ui"); clearTimeout(hideT); hideT=setTimeout(()=>{if(!v.paused&&!$("#scrub",el).classList.contains("drag")&&$("#hdMenu",el).hidden)el.classList.remove("ui")},2600)};
   /* amélioration d'image */
-  const cv=$("canvas.up",el), split=$("#split",el); let up=null, upMode=settings.upscale||"off", lastMode=upMode==="off"?"anim":upMode, cors=true, cmp=false, splitX=.5, srcUrl="";
-  const updHD=()=>{$("#pHD",el).classList.toggle("on",upMode!=="off"); $("#hdOpts",el).innerHTML=UP_MODES.map(o=>`<button class="hdopt" role="menuitemradio" aria-checked="${o.id===upMode}" data-up="${o.id}"><b>${o.name}</b><small>${o.hint}</small></button>`).join(""); $("#hdCmp",el).setAttribute("aria-checked",String(cmp)); split.hidden=!(cmp&&upMode!=="off"&&up); split.style.left=splitX*100+"%"};
-  const upFail=msg=>{toast(msg); if(up)up.stop(); up=null; upMode="off"; el.classList.remove("upscaled"); updHD()};
+  const cv=$("canvas.up",el), split=$("#split",el); let up=null, upMode=settings.upscale||"off", lastMode=upMode==="off"?"anim":upMode, cors=true, cmp=false, splitX=.5, srcUrl="", plainUrl="", resumeAt=0;
+  let gpu=true; // false = moteur de secours (filtre SVG, sans accès aux pixels)
+  const updHD=()=>{$("#pHD",el).classList.toggle("on",upMode!=="off"); $("#hdOpts",el).innerHTML=UP_MODES.map(o=>`<button class="hdopt" role="menuitemradio" aria-checked="${o.id===upMode}" data-up="${o.id}"><b>${o.name}</b><small>${o.hint}</small></button>`).join("");
+    const useGpu=gpu&&cors; $("#hdEng",el).textContent=useGpu?"Moteur : carte graphique (WebGL)":"Moteur compatible : ce film ne permet pas le traitement complet, un filtre plus léger est utilisé.";
+    $("#hdCmpRow",el).hidden=!useGpu; $("#hdCmp",el).setAttribute("aria-checked",String(cmp)); split.hidden=!(cmp&&useGpu&&upMode!=="off"&&up); split.style.left=splitX*100+"%"};
+  const SOFT={natural:{a:.3,s:1,b:0},anim:{a:.7,s:1.15,b:.35},old:{a:.55,s:1,b:.6},max:{a:1.1,s:1.03,b:0}};
+  const softApply=()=>{const m=SOFT[upMode]; if(!m){v.style.filter=""; return} const a=m.a;
+    $("#lsK",el).setAttribute("kernelMatrix",`0 ${-a} 0 ${-a} ${1+4*a} ${-a} 0 ${-a} 0`); $("#lsS",el).setAttribute("values",String(m.s)); $("#lsB",el).setAttribute("stdDeviation",String(m.b)); v.style.filter="url(#lumenSharp)"};
+  const toSoft=()=>{gpu=false; if(up)up.stop(); up=null; el.classList.remove("upscaled"); if(upMode!=="off")softApply(); updHD()};
+  const upFail=msg=>{if(/accès à ses images/.test(msg)){toSoft(); return} toast(msg); toSoft()};
   const applyUp=()=>{
-    if(upMode==="off"){if(up)up.stop(); el.classList.remove("upscaled"); updHD(); return}
-    if(!cors){upFail("Ce film refuse l'accès à ses images : l'amélioration est indisponible pour lui."); return}
-    if(!up)up=createUpscaler(v,cv,upFail); if(!up){upMode="off"; updHD(); return}
-    up.setMode(upMode); up.setSplit(cmp?splitX:-1); up.start(); el.classList.add("upscaled"); updHD();
+    if(upMode==="off"){if(up)up.stop(); el.classList.remove("upscaled"); v.style.filter=""; updHD(); return}
+    if(!gpu||!cors){toSoft(); return}
+    if(!up)up=createUpscaler(v,cv,upFail); if(!up){toSoft(); return}
+    v.style.filter=""; up.setMode(upMode); up.setSplit(cmp?splitX:-1); up.start(); el.classList.add("upscaled"); updHD();
   };
   const setUp=m=>{upMode=m; if(m!=="off")lastMode=m; settings.upscale=m; store.set("settings",settings); if(v.readyState>=2)applyUp(); else updHD()};
   $("#pHD",el).onclick=e=>{e.stopPropagation(); const m=$("#hdMenu",el); m.hidden=!m.hidden; $("#pHD",el).setAttribute("aria-expanded",String(!m.hidden)); poke()};
@@ -684,10 +693,10 @@ async function play(id){
   v.addEventListener("pause",()=>{$("#pPlay",el).innerHTML=I.play; $("#pPlay",el).setAttribute("aria-label","Lecture"); flash(I.pause); el.classList.add("ui"); persist()});
   v.addEventListener("waiting",()=>{$("#pLoad",el).hidden=false}); v.addEventListener("playing",()=>{$("#pLoad",el).hidden=true}); v.addEventListener("canplay",()=>{$("#pLoad",el).hidden=true});
   const ui=()=>{const d=v.duration||0,c=v.currentTime||0; const pc=d?c/d*100:0; $(".fl",el).style.width=pc+"%"; $(".kn",el).style.left=pc+"%"; let b=0; for(let i=0;i<v.buffered.length;i++)if(v.buffered.start(i)<=c)b=v.buffered.end(i); $(".bf",el).style.width=(d?b/d*100:0)+"%"; $("#pTime",el).textContent=`${fmt(c)} / ${fmt(d)}`; const sc=$("#scrub",el); sc.setAttribute("aria-valuemax",Math.floor(d)); sc.setAttribute("aria-valuenow",Math.floor(c)); sc.setAttribute("aria-valuetext",fmt(c))};
-  v.addEventListener("timeupdate",ui); v.addEventListener("progress",ui); v.addEventListener("loadedmetadata",()=>{const p=progress[id]; if(p&&p.t<v.duration-30){v.currentTime=p.t; toast("Reprise à "+fmt(p.t))} ui()});
+  v.addEventListener("timeupdate",ui); v.addEventListener("progress",ui); v.addEventListener("loadedmetadata",()=>{if(resumeAt>1){v.currentTime=resumeAt; resumeAt=0; ui(); return} const p=progress[id]; if(p&&p.t<v.duration-30&&!el.dataset.resumed){el.dataset.resumed="1"; v.currentTime=p.t; toast("Reprise à "+fmt(p.t))} ui()});
   v.addEventListener("ended",()=>{delete progress[id]; store.set("progress",progress); el.classList.add("ui"); toast("Film terminé")});
   v.addEventListener("error",()=>{if(!v.getAttribute("src"))return;
-    if(v.crossOrigin&&cors){cors=false; v.removeAttribute("crossorigin"); v.src=srcUrl; v.load(); v.play().catch(()=>{}); if(upMode!=="off")upFail("Ce film refuse l'accès à ses images : l'amélioration est indisponible pour lui."); return}
+    if(v.crossOrigin&&cors){cors=false; resumeAt=v.currentTime||resumeAt; v.removeAttribute("crossorigin"); v.src=plainUrl; v.load(); v.play().catch(()=>{}); toSoft(); return}
     fail("Le fichier vidéo de ce film n'a pas pu être chargé. Il est peut-être indisponible ou dans un format que votre navigateur ne lit pas.")});
   el.addEventListener("pointermove",poke);
   const sc=$("#scrub",el),tip=$(".tip",sc); const at=e=>{const r=$(".tr",sc).getBoundingClientRect(); return Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))};
@@ -698,7 +707,7 @@ async function play(id){
   const saveT=setInterval(persist,15000);
   poke();
   try{const m=await iaMeta(id); if(P?.el!==el)return; if(!m.src){fail("Internet Archive ne propose pas de fichier vidéo lisible directement pour ce film."); return}
-    srcUrl=m.src; v.crossOrigin="anonymous"; v.src=m.src;
+    srcUrl=m.direct||m.src; plainUrl=m.src; v.crossOrigin="anonymous"; v.src=srcUrl;
     if(m.sub){const tr=document.createElement("track"); tr.kind="subtitles"; tr.src=m.sub; tr.srclang="und"; tr.label="Sous-titres"; v.append(tr)}
     v.play().catch(()=>{$("#pLoad",el).hidden=true; el.classList.add("ui")});
   }catch(e){if(P?.el===el)fail("Impossible de joindre Internet Archive. Vérifiez votre connexion puis réessayez.")}
